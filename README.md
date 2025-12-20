@@ -1,9 +1,6 @@
 [GDK - Gamemode SDK for C/C++][github]
 ======================================
 
-[![Version][version_badge]][version]
-[![Build Status][build_status]][build]
-
 Introduction
 -------------
 
@@ -120,7 +117,7 @@ available online [here][online_docs], in a browsable form, as well as in
 the GDK header files.
 
 If you feel like making a new project there's a
-[step-by-step guide][cmake_guide] on setting up a GDK project with CMake.
+step-by-step guide cmake_guide {link not available} on setting up a GDK project with CMake.
 No prior knowledge of CMake is required to follow it.
 
 ### Using Git
@@ -130,7 +127,7 @@ the easiest way to get started is probably to clone this repo (if you haven't
 done so) and create a new local branch for your personal project:
 
 ```
-git clone git://github.com/Zeex/sampgdk.git
+git clone git://github.com/Foundation-PAWN/sampgdk-backup.git
 git checkout -b my-project
 ```
 
@@ -153,13 +150,7 @@ License
 
 Licensed under the Apache License version 2.0. See the LICENSE.txt file.
 
-[github]: https://github.com/Zeex/sampgdk
-[version]: https://github.com/Zeex/sampgdk/releases
-[version_badge]: https://badge.fury.io/gh/Zeex%2Fsampgdk.svg
-[build]: https://ci.appveyor.com/project/Zeex/sampgdk/branch/master
-[build_status]: https://ci.appveyor.com/api/projects/status/ybbvixqpppjhhyg7/branch/master?svg=true
-[helloworld]: plugins/helloworld
-[online_docs]: http://zeex.github.io/sampgdk/doc/html/index.html
+[github]: https://github.com/Foundation-PAWN/sampgdk-backup
+[version]: https://github.com/Foundation-PAWN/sampgdk-backup/releases
 [cmake_faq]: http://www.cmake.org/Wiki/CMake_FAQ
-[cmake_guide]: https://github.com/Zeex/sampgdk/wiki/Setting-up-GDK-with-CMake
 
