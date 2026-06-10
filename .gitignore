@@ -15,3 +15,6 @@ CMakeLists.txt.user*
 /scripts/cidl_lextab.py
 /scripts/cidl_parser.out
 /scripts/cidl_parsetab.py
+/build*/
+/out*
+/out

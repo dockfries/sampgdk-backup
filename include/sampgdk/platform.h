@@ -16,8 +16,14 @@
 #ifndef SAMPGDK_PLATFORM_H
 #define SAMPGDK_PLATFORM_H
 
-#if !defined _M_IX86 && !defined __i386__ && !defined RC_INVOKED
+#if !defined _M_IX86 && !defined __i386__ \
+    && !defined _M_X64 && !defined __x86_64__ \
+    && !defined RC_INVOKED
   #error Unsupported architecture
+#endif
+
+#if defined _M_X64 || defined __x86_64__ || defined __64BIT__
+  #define SAMPGDK_64BIT 1
 #endif
 
 #if (defined __CYGWIN32__ || defined RC_INVOKED) && !defined WIN32
@@ -52,12 +58,22 @@
     #define SAMPGDK_CDECL __cdecl
     #define SAMPGDK_STDCALL __stdcall
   #else
+    #ifdef SAMPGDK_64BIT
+      #define SAMPGDK_CDECL
+      #define SAMPGDK_STDCALL
+    #else
+      #define SAMPGDK_CDECL __attribute__((cdecl))
+      #define SAMPGDK_STDCALL __attribute__((stdcall))
+    #endif
+  #endif
+#elif SAMPGDK_LINUX
+  #ifdef SAMPGDK_64BIT
+    #define SAMPGDK_CDECL
+    #define SAMPGDK_STDCALL
+  #else
     #define SAMPGDK_CDECL __attribute__((cdecl))
     #define SAMPGDK_STDCALL __attribute__((stdcall))
   #endif
-#elif SAMPGDK_LINUX
-  #define SAMPGDK_CDECL __attribute__((cdecl))
-  #define SAMPGDK_STDCALL __attribute__((stdcall))
 #endif
 
 #if SAMPGDK_LINUX && defined IN_SAMPGDK && !defined _GNU_SOURCE

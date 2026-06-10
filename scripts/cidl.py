@@ -644,6 +644,6 @@ if __name__ == '__main__':
   for path in sys.argv[1:]:
     print('Parsing \'%s\'...'  % path)
     try:
-      unit = parser.parse(open(path, 'rU').read())
+      unit = parser.parse(open(path, 'r').read())
     except Error as e:
       print(e)

@@ -243,7 +243,7 @@ int sampgdk_array_append(struct sampgdk_array *a, void *elem) {
 
 int sampgdk_array_get_index(struct sampgdk_array *a, void *elem) {
   assert(elem != NULL);
-  return ((unsigned char *)elem - (unsigned char *)a->data) / a->elem_size;
+  return (int)(((unsigned char *)elem - (unsigned char *)a->data) / a->elem_size);
 }
 
 int sampgdk_array_find(struct sampgdk_array *a,

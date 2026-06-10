@@ -50,8 +50,13 @@ SAMPGDK_MODULE_INIT(fakeamx) {
   _sampgdk_fakeamx.amxhdr.magic = AMX_MAGIC;
   _sampgdk_fakeamx.amxhdr.file_version = MIN_FILE_VERSION;
   _sampgdk_fakeamx.amxhdr.amx_version = MIN_AMX_VERSION;
-  _sampgdk_fakeamx.amxhdr.dat =
-    (cell)_sampgdk_fakeamx.heap.data - (cell)&_sampgdk_fakeamx.amxhdr;
+  /* dat is unused for fake AMX; amx->data is set directly below.
+   * char* subtraction yields ptrdiff_t (64-bit on x64, 32-bit on x86).
+   * Cast to int32_t truncates explicitly; safe because field is unused.
+   */
+  _sampgdk_fakeamx.amxhdr.dat = (int32_t)(
+      (char *)_sampgdk_fakeamx.heap.data
+    - (char *)&_sampgdk_fakeamx.amxhdr);
   _sampgdk_fakeamx.amxhdr.defsize = sizeof(AMX_FUNCSTUBNT);
 
   _sampgdk_fakeamx.amx.base = (unsigned char *)&_sampgdk_fakeamx.amxhdr;
@@ -93,8 +98,12 @@ int sampgdk_fakeamx_resize_heap(int cells) {
     return error;
   }
 
-  /* Update data pointers to point at the newly allocated heap. */
-  _sampgdk_fakeamx.amxhdr.dat = (cell)_sampgdk_fakeamx.heap.data - (cell)&_sampgdk_fakeamx.amxhdr;
+  /* Update data pointers to point at the newly allocated heap.
+   * dat is unused; amx->data is used instead.
+   */
+  _sampgdk_fakeamx.amxhdr.dat = (int32_t)(
+      (char *)_sampgdk_fakeamx.heap.data
+    - (char *)&_sampgdk_fakeamx.amxhdr);
   _sampgdk_fakeamx.amx.data = (unsigned char *)_sampgdk_fakeamx.heap.data;
 
   old_stk = _sampgdk_fakeamx.amx.stk;

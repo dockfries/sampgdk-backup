@@ -21,7 +21,7 @@ import re
 import sys
 
 def strip_license_blocks(s):
-  return re.sub(r'/\*\s*Copyright.*?Zeex(.|[\r\n])*?\*/[\r\n]*', '', s, re.M | re.S)
+  return re.sub(r'/\*\s*Copyright.*?Zeex(.|[\r\n])*?\*/[\r\n]*', '', s, flags=re.M | re.S)
 
 def extract_path(include):
   match = re.match('["<](.*)[">]', include)

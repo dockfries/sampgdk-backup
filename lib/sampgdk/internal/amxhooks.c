@@ -75,17 +75,25 @@ static int AMXAPI _sampgdk_amxhooks_Register(AMX *amx,
                                              int number) {
   int i;
   int count = 0;
-  AMX_HEADER *hdr;
-  AMX_FUNCSTUBNT *natives;
 
   sampgdk_log_debug("amx_Register(%p, %p, %d)", amx, nativelist, number);
 
-  hdr = (AMX_HEADER *)amx->base;
-  natives = (AMX_FUNCSTUBNT *)(amx->base + hdr->natives);
-
-  if (amx_FindNative(amx, "funcidx", &i) == AMX_ERR_NONE) {
-    natives[i].address = (ucell)_sampgdk_amxhooks_funcidx;
+#ifndef SAMPGDK_64BIT
+  /* On 32-bit, override funcidx to work around our FindPublic hook
+   * which always returns success regardless of the actual result.
+   *
+   * On 64-bit (open.mp), funcidx is handled by the server itself,
+   * and (ucell) would truncate the pointer, so skip it.
+   */
+  {
+    AMX_HEADER *hdr = (AMX_HEADER *)amx->base;
+    AMX_FUNCSTUBNT *natives =
+        (AMX_FUNCSTUBNT *)(amx->base + hdr->natives);
+    if (amx_FindNative(amx, "funcidx", &i) == AMX_ERR_NONE) {
+      natives[i].address = (ucell)_sampgdk_amxhooks_funcidx;
+    }
   }
+#endif
 
   for (i = 0; (i < number || number == -1) && nativelist[i].name != NULL; i++) {
     if (sampgdk_native_register(nativelist[i].name, nativelist[i].func) >= 0) {
@@ -100,7 +108,8 @@ static int AMXAPI _sampgdk_amxhooks_Register(AMX *amx,
   }
 
   return SAMPGDK_HOOK_CALL_CC(_sampgdk_amxhooks_Register_hook, int, AMXAPI,
-                              (AMX *, const AMX_NATIVE_INFO *, int), (amx, nativelist, number));
+                              (AMX *, const AMX_NATIVE_INFO *, int),
+                              (amx, nativelist, number));
 }
 
 static int AMXAPI _sampgdk_amxhooks_FindPublic(AMX *amx,
@@ -293,7 +302,7 @@ static int _sampgdk_amxhooks_create(void) {
   #define _SAMPGDK_AMXHOOKS_CREATE_HOOK(name) \
     if ((_sampgdk_amxhooks_##name##_hook = \
         sampgdk_hook_new((void *)sampgdk_amx_api->name, \
-                         (void *)_sampgdk_amxhooks_##name)) == NULL) \
+                              (void *)_sampgdk_amxhooks_##name)) == NULL) \
       goto no_memory;
   _SAMPGDK_AMXHOOKS_FUNC_LIST(_SAMPGDK_AMXHOOKS_CREATE_HOOK)
   return 0;

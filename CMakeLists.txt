@@ -1,6 +1,6 @@
 project(sampgdk)
 
-cmake_minimum_required(VERSION 2.8.12)
+cmake_minimum_required(VERSION 3.5)
 cmake_policy(SET CMP0022 NEW)
 
 list(APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake)
@@ -9,6 +9,7 @@ option(SAMPGDK_STATIC "Build static library instead" OFF)
 option(SAMPGDK_BUILD_PLUGINS "Build example plugins" OFF)
 option(SAMPGDK_BUILD_AMALGAMATION "Build amalgamation" OFF)
 option(SAMPGDK_BUILD_DOCS "Build Doxygen documentation" ON)
+option(SAMPGDK_ARCH "Target architecture (32 or 64)" 32)
 
 set(SAMPGDK_VERSION_MAJOR 4)
 set(SAMPGDK_VERSION_MINOR 6)
@@ -247,6 +248,9 @@ endif()
 
 if(WIN32)
   target_compile_definitions(sampgdk PRIVATE WIN32_LEAN_AND_MEAN)
+  if(SAMPGDK_ARCH EQUAL 64)
+    target_compile_definitions(sampgdk PRIVATE SAMPGDK_64BIT)
+  endif()
 elseif(UNIX)
   target_compile_definitions(sampgdk PRIVATE _GNU_SOURCE)
 endif()
@@ -256,10 +260,19 @@ if(MSVC)
 endif()
 
 if(UNIX)
-  target_compile_options(sampgdk PRIVATE -m32 -fvisibility=hidden)
-  if(NOT SAMPGDK_STATIC)
-    target_link_libraries(sampgdk PRIVATE
-             -m32 -Wl,--no-undefined,--retain-symbols-file=${SAMPGDK_SYM_FILE})
+  if(SAMPGDK_ARCH EQUAL 32)
+    target_compile_options(sampgdk PRIVATE -m32 -fvisibility=hidden)
+    if(NOT SAMPGDK_STATIC)
+      target_link_libraries(sampgdk PRIVATE
+               -m32 -Wl,--no-undefined,--retain-symbols-file=${SAMPGDK_SYM_FILE})
+    endif()
+  else()
+    target_compile_options(sampgdk PRIVATE -m64 -fvisibility=hidden)
+    target_compile_definitions(sampgdk PRIVATE SAMPGDK_64BIT)
+    if(NOT SAMPGDK_STATIC)
+      target_link_libraries(sampgdk PRIVATE
+               -m64 -Wl,--no-undefined,--retain-symbols-file=${SAMPGDK_SYM_FILE})
+    endif()
   endif()
 endif()
 
@@ -333,11 +346,17 @@ install(TARGETS sampgdk RUNTIME DESTINATION bin COMPONENT bin
                         ARCHIVE DESTINATION lib COMPONENT dev
                         LIBRARY DESTINATION lib COMPONENT bin)
 
+if(SAMPGDK_ARCH EQUAL 32)
+  set(ARCH_TAG "32")
+else()
+  set(ARCH_TAG "64")
+endif()
+
 if(WIN32)
-  set(CPACK_PACKAGE_FILE_NAME sampgdk-${SAMPGDK_VERSION}-win32)
+  set(CPACK_PACKAGE_FILE_NAME sampgdk-${SAMPGDK_VERSION}-win${ARCH_TAG})
   set(CPACK_GENERATOR ZIP)
 elseif(UNIX)
-  set(CPACK_PACKAGE_FILE_NAME sampgdk-${SAMPGDK_VERSION}-linux)
+  set(CPACK_PACKAGE_FILE_NAME sampgdk-${SAMPGDK_VERSION}-linux${ARCH_TAG})
   set(CPACK_GENERATOR TGZ)
 endif()
 
