@@ -110,6 +110,7 @@ macro(sampgdk_add_api_gen module_name idl_file api_file)
       --module=${module_name}
       --idl=${idl_file}
       --api=${api_file}
+      $<$<BOOL:${SAMPGDK_TINY}>:--tiny>
     DEPENDS ${idl_file} ${PROJECT_SOURCE_DIR}/scripts/generate_code.py)
   sampgdk_add_sources(${api_file})
 endmacro()
@@ -123,6 +124,7 @@ macro(sampgdk_add_source_gen module_name idl_file source_file)
       --module=${module_name}
       --idl=${idl_file}
       --source=${source_file}
+      $<$<BOOL:${SAMPGDK_TINY}>:--tiny>
     DEPENDS ${idl_file} ${PROJECT_SOURCE_DIR}/scripts/generate_code.py)
   sampgdk_add_sources(${source_file})
 endmacro()

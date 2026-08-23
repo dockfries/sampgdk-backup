@@ -64,7 +64,9 @@ jobs:
           test -f build/RelWithDebInfo/sampgdk5.dll
           test -f build/lib/sampgdk/sampgdk.c
           test -f build/lib/sampgdk/sampgdk.h
-          test -f build/plugins/helloworld/RelWithDebInfo/helloworld.dll
+          # helloworld requires IDL natives and is not built in the tiny
+          # build; ufs only uses the interop API and is built as a smoke test.
+          test -f build/plugins/ufs/RelWithDebInfo/ufs.dll
 
       # Only the amalgamation is published: it is architecture-neutral
       # source, so both 32-bit and 64-bit plugins can consume it. The

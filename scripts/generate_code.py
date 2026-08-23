@@ -141,11 +141,15 @@ def previous_and_next(iterable):
     except AttributeError:
       return zip(prevs, items, nexts)
 
-def generate_api_file(module_name, idl, file):
+def generate_api_file(module_name, idl, file, tiny):
+  if tiny:
+    # The tiny build keeps only the core/interop/version exports (defined
+    # in core.api/interop.api/version.api); no IDL natives are exported.
+    return
   for f in filter(lambda x: x.has_attr('native'), idl.functions):
     file.write('sampgdk_%s\n' % f.name)
 
-def generate_header_file(module_name, idl, file):
+def generate_header_file(module_name, idl, file, tiny):
   header_symbol = 'SAMPGDK_%s_H' % module_name.upper()
 
   file.write('#ifndef %s\n' % header_symbol)
@@ -186,7 +190,7 @@ def generate_header_file(module_name, idl, file):
 
   file.write('#endif /* !%s */\n' % header_symbol)
 
-def generate_source_file(module_name, idl, file):
+def generate_source_file(module_name, idl, file, tiny):
   file.write('#include <sampgdk/%s.h>\n' % module_name)
   file.write('\n')
   file.write('#include "internal/callback.h"\n')
@@ -200,9 +204,10 @@ def generate_source_file(module_name, idl, file):
   natives = list(filter(lambda x: x.has_attr('native') and not
                                   x.has_attr('noimpl'),
                         idl.functions))
-  for func in natives:
-    generate_native_impl(file, func)
-    file.write('\n')
+  if not tiny:
+    for func in natives:
+      generate_native_impl(file, func)
+      file.write('\n')
 
   callbacks = list(filter(lambda x: x.has_attr('callback'), idl.functions))
   for func in callbacks:
@@ -431,6 +436,8 @@ def parse_args(argv):
   argparser.add_argument('--api', dest='api_file')
   argparser.add_argument('--header', dest='header_file')
   argparser.add_argument('--source', dest='source_file')
+  argparser.add_argument('--tiny', dest='tiny', action='store_true',
+                        help='generate callbacks only, skip native impls')
   return argparser.parse_args(argv)
 
 def main(argv):
@@ -449,7 +456,7 @@ def main(argv):
         if not os.path.exists(dir):
           os.makedirs(dir)
         with open(path, 'w') as file:
-          func(args.module_name, idl, file)
+          func(args.module_name, idl, file, args.tiny)
 
   except cidl.Error as e:
     sys.stderr.write('%s\n' % e)
