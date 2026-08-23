@@ -24,3 +24,6 @@ CMakeLists.txt.user*
 
 # Temporary backups
 /tiny_idl_backup/
+
+# ZCode local session data
+/.zcode/

@@ -1,6 +1,8 @@
 [GDK - Gamemode SDK for C/C++][github]
 ======================================
 
+**English** | [简体中文](README.zh-CN.md)
+
 Introduction
 -------------
 
@@ -113,12 +115,13 @@ Getting Started
 
 You can start with downloading the source code and playing a little bit with
 the [helloworld][helloworld] plugin. In case you need documentation it's
-available online [here][online_docs], in a browsable form, as well as in
+available [here][online_docs], in a browsable form, as well as in
 the GDK header files.
 
-If you feel like making a new project there's a
-step-by-step guide cmake_guide {link not available} on setting up a GDK project with CMake.
-No prior knowledge of CMake is required to follow it.
+If you feel like making a new project there's
+some information in the [doc/](doc/) directory on setting up a GDK project,
+including building the Doxygen documentation and using the amalgamation
+files. No prior knowledge of CMake is required to follow it.
 
 ### Using Git
 
@@ -127,7 +130,7 @@ the easiest way to get started is probably to clone this repo (if you haven't
 done so) and create a new local branch for your personal project:
 
 ```
-git clone git://github.com/Foundation-PAWN/sampgdk-backup.git
+git clone https://github.com/dockfries/sampgdk-backup.git
 git checkout -b my-project
 ```
 
@@ -150,7 +153,14 @@ License
 
 Licensed under the Apache License version 2.0. See the LICENSE.txt file.
 
-[github]: https://github.com/Foundation-PAWN/sampgdk-backup
-[version]: https://github.com/Foundation-PAWN/sampgdk-backup/releases
-[cmake_faq]: http://www.cmake.org/Wiki/CMake_FAQ
+[github]: https://github.com/dockfries/sampgdk-backup
+[version]: https://github.com/dockfries/sampgdk-backup/releases
+[sdk]: https://github.com/AmyrAhmady/samp-plugin-sdk
+[cmake]: https://cmake.org/
+[python]: https://www.python.org/
+[ply]: https://pypi.org/project/ply/
+[pip]: https://pypi.org/project/pip/
+[helloworld]: plugins/helloworld/helloworld.cpp
+[online_docs]: doc/
+[cmake_faq]: https://cmake.org/cmake/help/latest/faq.html
 
