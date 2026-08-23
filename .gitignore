@@ -18,3 +18,9 @@ CMakeLists.txt.user*
 /build*/
 /out*
 /out
+
+# Intermediate extraction output from scripts/extract_all.bat
+/extracted_natives/
+
+# Temporary backups
+/tiny_idl_backup/

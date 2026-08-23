@@ -1,0 +1,78 @@
+name: Build
+
+on:
+  push:
+  workflow_dispatch:
+
+jobs:
+  build:
+    name: ${{ matrix.name }}
+    strategy:
+      matrix:
+        include:
+          - name: full
+            tiny: false
+            artifact: sampgdk-full
+          - name: tiny
+            tiny: true
+            artifact: sampgdk-tiny
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      # Code generation (scripts/generate_code.py) requires ply.
+      - name: Install Python dependencies
+        run: python -m pip install ply
+
+      - name: Configure CMake
+        shell: powershell
+        run: |
+          cmake -S . -B build -A x64 `
+            -DSAMPGDK_BUILD_DOCS=OFF `
+            -DSAMPGDK_BUILD_PLUGINS=ON `
+            -DSAMPGDK_BUILD_AMALGAMATION=ON `
+            -DSAMPGDK_TINY=${{ matrix.tiny }} `
+            -DSAMPSDK_DIR=${{ github.workspace }}/deps/samp-plugin-sdk
+
+      - name: Build
+        shell: powershell
+        run: |
+          cmake --build build --config RelWithDebInfo --parallel
+
+      - name: Build amalgamation
+        shell: powershell
+        run: |
+          cmake --build build --target sampgdk_amalgamate --config RelWithDebInfo
+
+      - name: Verify artifacts (full)
+        if: ${{ !matrix.tiny }}
+        shell: bash
+        run: |
+          test -f build/RelWithDebInfo/sampgdk5.dll
+          test -f build/lib/sampgdk/sampgdk.c
+          test -f build/lib/sampgdk/sampgdk.h
+          # plugins built as compile smoke-test
+          test -f build/plugins/helloworld/RelWithDebInfo/helloworld.dll
+          test -f build/plugins/omp_example/RelWithDebInfo/omp_example.dll
+
+      - name: Verify artifacts (tiny)
+        if: ${{ matrix.tiny }}
+        shell: bash
+        run: |
+          test -f build/RelWithDebInfo/sampgdk5.dll
+          test -f build/lib/sampgdk/sampgdk.c
+          test -f build/lib/sampgdk/sampgdk.h
+          test -f build/plugins/helloworld/RelWithDebInfo/helloworld.dll
+
+      # Only the amalgamation is published: it is architecture-neutral
+      # source, so both 32-bit and 64-bit plugins can consume it. The
+      # built sampgdk5.dll is 64-bit only and is not distributed.
+      - name: Upload amalgamation
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.artifact }}
+          path: |
+            build/lib/sampgdk/sampgdk.c
+            build/lib/sampgdk/sampgdk.h

@@ -1,3 +1,6 @@
 sampgdk_add_subproject(blank)
 sampgdk_add_subproject(helloworld)
+if(NOT SAMPGDK_TINY)
+  sampgdk_add_subproject(omp_example)
+endif()
 sampgdk_add_subproject(ufs)
