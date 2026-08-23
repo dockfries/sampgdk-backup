@@ -1,0 +1,23 @@
+/* Generated from open.mp include omp_gangzone.inc; natives not present in a_*.idl */
+[native] int CreatePlayerGangZone(int playerid, float minx, float miny, float maxx, float maxy);
+[native] int GangZoneGetColourForPlayer(int playerid, int zoneid);
+[native] int GangZoneGetFlashColourForPlayer(int playerid, int zoneid);
+[native] bool GangZoneGetPos(int zoneid, [out] float minX, [out] float minY, [out] float maxX, [out] float maxY);
+[native] bool IsGangZoneFlashingForPlayer(int playerid, int zoneid);
+[native] bool IsGangZoneVisibleForPlayer(int playerid, int zoneid);
+[native] bool IsPlayerGangZoneFlashing(int playerid, int zoneid);
+[native] bool IsPlayerGangZoneVisible(int playerid, int zoneid);
+[native] bool IsPlayerInGangZone(int playerid, int zoneid);
+[native] bool IsPlayerInPlayerGangZone(int playerid, int zoneid);
+[native] bool IsValidGangZone(int zoneid);
+[native] bool IsValidPlayerGangZone(int playerid, int zoneid);
+[native] bool PlayerGangZoneDestroy(int playerid, int zoneid);
+[native] bool PlayerGangZoneFlash(int playerid, int zoneid, int flashColour);
+[native] int PlayerGangZoneGetColour(int playerid, int zoneid);
+[native] int PlayerGangZoneGetFlashColour(int playerid, int zoneid);
+[native] bool PlayerGangZoneGetPos(int playerid, int zoneid, [out] float minX, [out] float minY, [out] float maxX, [out] float maxY);
+[native] bool PlayerGangZoneHide(int playerid, int zoneid);
+[native] bool PlayerGangZoneShow(int playerid, int zoneid, int colour);
+[native] bool PlayerGangZoneStopFlash(int playerid, int zoneid);
+[native] bool UseGangZoneCheck(int zoneid, bool enable);
+[native] bool UsePlayerGangZoneCheck(int playerid, int zoneid, bool enable);

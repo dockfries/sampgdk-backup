@@ -1,0 +1,5 @@
+/* Generated from open.mp include omp_class.inc; natives not present in a_*.idl */
+[native] bool EditPlayerClass(int classid, int team, int skin, float spawnX, float spawnY, float spawnZ, float angle, int weapon1, int ammo1, int weapon2, int ammo2, int weapon3, int ammo3);
+[native] int GetAvailableClasses();
+[native] bool GetPlayerClass(int classid, [out] int team, [out] int skin, [out] float spawnX, [out] float spawnY, [out] float spawnZ, [out] float angle, [out] int weapon1, [out] int ammo1, [out] int weapon2, [out] int ammo2, [out] int weapon3, [out] int ammo3);
+[native] bool GetSpawnInfo(int playerid, [out] int team, [out] int skin, [out] float spawnX, [out] float spawnY, [out] float spawnZ, [out] float angle, [out] int weapon1, [out] int ammo1, [out] int weapon2, [out] int ammo2, [out] int weapon3, [out] int ammo3);

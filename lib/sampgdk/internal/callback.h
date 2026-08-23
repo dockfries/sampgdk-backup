@@ -30,8 +30,9 @@ typedef bool (*sampgdk_callback)(AMX *amx, void *func, cell *retval);
 int sampgdk_callback_register(const char *name, sampgdk_callback handler);
 void sampgdk_callback_unregister(const char *name);
 
-/* Gets the name of the callback with the specified index,
- * similar to amx_GetPublic().
+/* Gets the name of the callback with the specified forged index,
+ * similar to amx_GetPublic(). The index must be one produced by
+ * amxhooks.c (AMX_EXEC_GDK - table position).
  */
 bool sampgdk_callback_get(int index, char **name);
 

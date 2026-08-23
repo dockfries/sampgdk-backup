@@ -1,0 +1,23 @@
+/* Generated from open.mp include omp_textlabel.inc; natives not present in a_*.idl */
+[native] bool Get3DTextLabelAttachedData(int textid, [out] int parentPlayerid, [out] int parentVehicleid);
+[native] int Get3DTextLabelColor(int textid);
+[native] float Get3DTextLabelDrawDistance(int textid);
+[native] bool Get3DTextLabelLOS(int textid);
+[native] bool Get3DTextLabelPos(int textid, [out] float x, [out] float y, [out] float z);
+[native] bool Get3DTextLabelText(int textid, [out] string text, int len);
+[native] int Get3DTextLabelVirtualWorld(int textid);
+[native] bool GetPlayer3DTextLabelAttached(int playerid, int textid, [out] int parentPlayerid, [out] int parentVehicleid);
+[native] int GetPlayer3DTextLabelColor(int playerid, int textid);
+[native] float GetPlayer3DTextLabelDrawDist(int playerid, int textid);
+[native] bool GetPlayer3DTextLabelLOS(int playerid, int textid);
+[native] bool GetPlayer3DTextLabelPos(int playerid, int textid, [out] float x, [out] float y, [out] float z);
+[native] bool GetPlayer3DTextLabelText(int playerid, int textid, [out] string text, int len);
+[native] int GetPlayer3DTextLabelVirtualW(int playerid, int textid);
+[native] bool Is3DTextLabelStreamedIn(int playerid, int textid);
+[native] bool IsValid3DTextLabel(int textid);
+[native] bool IsValidPlayer3DTextLabel(int playerid, int textid);
+[native] bool Set3DTextLabelDrawDistance(int textid, float drawDistance);
+[native] bool Set3DTextLabelLOS(int textid, bool enable);
+[native] bool Set3DTextLabelVirtualWorld(int textid, int virtualWorld);
+[native] bool SetPlayer3DTextLabelDrawDist(int playerid, int textid, float drawDistance);
+[native] bool SetPlayer3DTextLabelLOS(int playerid, int textid, bool enable);

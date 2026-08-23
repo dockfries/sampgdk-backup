@@ -1,0 +1,5 @@
+/* Generated from open.mp include omp_checkpoint.inc; natives not present in a_*.idl */
+[native] bool GetPlayerCheckpoint(int playerid, [out] float centreX, [out] float centreY, [out] float centreZ, [out] float radius);
+[native] bool GetPlayerRaceCheckpoint(int playerid, [out] float centreX, [out] float centreY, [out] float centreZ, [out] float nextX, [out] float nextY, [out] float nextZ, [out] float radius);
+[native] bool IsPlayerCheckpointActive(int playerid);
+[native] bool IsPlayerRaceCheckpointActive(int playerid);

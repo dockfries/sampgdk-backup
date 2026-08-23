@@ -1,0 +1,6 @@
+/* Generated from open.mp include omp_actor.inc; natives not present in a_*.idl */
+[native] bool GetActorAnimation(int actorid, [out] string animationLibrary, int librarySize, [out] string animationName, int nameSize, [out] float delta, [out] bool loop, [out] bool lockX, [out] bool lockY, [out] bool freeze, [out] int time);
+[native] int GetActorSkin(int actorid);
+[native] bool GetActorSpawnInfo(int actorid, [out] int skin, [out] float spawnX, [out] float spawnY, [out] float spawnZ, [out] float spawnAngle);
+[native] int GetActors([out] string actors, int size);
+[native] bool SetActorSkin(int actorid, int skin);

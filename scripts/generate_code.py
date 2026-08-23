@@ -229,11 +229,18 @@ def generate_source_file(module_name, idl, file):
 def generate_constant(file, const):
   file.write('#define %s (%s)\n' % (const.name, const.value))
 
+# Maps a function name to its open.mp documentation page slug. Most names
+# map 1:1; DB_Close/DB_Open are documented under a _Modern suffix.
+def _docs_name(name):
+  if name in ('DB_Close', 'DB_Open'):
+    return name + '_Modern'
+  return name
+
 def generate_native_doc_comment(file, func):
   file.write('/**\n')
   file.write(' * \\ingroup natives\n')
-  file.write(' * \\see <a href="http://wiki.sa-mp.com/wiki/%s">'
-             '%s on SA-MP Wiki</a>\n' % (func.name, func.name))
+  file.write(' * \\see <a href="https://open.mp/docs/scripting/functions/%s">'
+             '%s on open.mp</a>\n' % (_docs_name(func.name), func.name))
   file.write(' */\n')
 
 def generate_native_decl(file, func):
@@ -241,9 +248,14 @@ def generate_native_decl(file, func):
   file.write('SAMPGDK_NATIVE(%s, %s(%s));\n' %
              (func.type, func.name, ParameterList(func.params)))
 
+# Windows GDI/other headers declare functions with these names; defining a
+# sampgdk alias macro for them would corrupt later includes of those headers.
+_NO_ALIAS_NATIVES = {'GetObjectType'}
+
 def generate_native_alias(file, func):
   file.write('#undef  %s\n' % func.name)
-  file.write('#define %s sampgdk_%s\n' % (func.name, func.name))
+  if func.name not in _NO_ALIAS_NATIVES:
+    file.write('#define %s sampgdk_%s\n' % (func.name, func.name))
 
 def generate_native_wrapper(file, func):
   file.write('inline %s %s(%s) {\n' %
@@ -341,8 +353,8 @@ def generate_native_impl(file, func):
 def generate_callback_doc_comment(file, func):
   file.write('/**\n')
   file.write(' * \\ingroup callbacks\n')
-  file.write(' * \\see <a href="http://wiki.sa-mp.com/wiki/%s">'
-             '%s on SA-MP Wiki</a>\n' % (func.name, func.name))
+  file.write(' * \\see <a href="https://open.mp/docs/scripting/callbacks/%s">'
+             '%s on open.mp</a>\n' % (_docs_name(func.name), func.name))
   file.write(' */\n')
 
 def generate_callback_decl(file, func):

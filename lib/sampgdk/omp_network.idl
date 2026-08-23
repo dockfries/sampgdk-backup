@@ -1,0 +1,6 @@
+/* Generated from open.mp include omp_network.inc; natives not present in a_*.idl */
+[native] bool ClearBanList();
+[native] int GetPlayerRawIp(int playerid);
+[native] bool IsBanned(string ipaddress);
+[native] bool SendClientCheck(int playerid, int type, int memoryAddress, int memoryOffset, int byteCount);
+[native] bool SetPlayerAdmin(int playerid, bool admin);

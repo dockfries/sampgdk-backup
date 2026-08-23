@@ -1,0 +1,4 @@
+/* Generated from open.mp include omp_dialog.inc; natives not present in a_*.idl */
+[native] bool GetPlayerDialogData(int playerid, [out] int style, [out] string title, int titleSize, [out] string body, int bodySize, [out] string button1, int button1Size, [out] string button2, int button2Size);
+[native] int GetPlayerDialogID(int playerid);
+[native] bool HidePlayerDialog(int playerid);

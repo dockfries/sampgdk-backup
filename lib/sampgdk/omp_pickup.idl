@@ -1,0 +1,26 @@
+/* Generated from open.mp include omp_pickup.inc; natives not present in a_*.idl */
+[native] int CreatePlayerPickup(int playerid, int model, int type, float x, float y, float z, int virtualWorld = 0);
+[native] bool DestroyPlayerPickup(int playerid, int pickupid);
+[native] int GetPickupModel(int pickupid);
+[native] bool GetPickupPos(int pickupid, [out] float x, [out] float y, [out] float z);
+[native] int GetPickupType(int pickupid);
+[native] int GetPickupVirtualWorld(int pickupid);
+[native] int GetPlayerPickupModel(int playerid, int pickupid);
+[native] bool GetPlayerPickupPos(int playerid, int pickupid, [out] float x, [out] float y, [out] float z);
+[native] int GetPlayerPickupType(int playerid, int pickupid);
+[native] int GetPlayerPickupVirtualWorld(int playerid, int pickupid);
+[native] bool HidePickupForPlayer(int playerid, int pickupid);
+[native] bool IsPickupHiddenForPlayer(int playerid, int pickupid);
+[native] bool IsPickupStreamedIn(int playerid, int pickupid);
+[native] bool IsPlayerPickupStreamedIn(int playerid, int pickupid);
+[native] bool IsValidPickup(int pickupid);
+[native] bool IsValidPlayerPickup(int playerid, int pickupid);
+[native] bool SetPickupModel(int pickupid, int model, bool update = true);
+[native] bool SetPickupPos(int pickupid, float x, float y, float z, bool update = true);
+[native] bool SetPickupType(int pickupid, int type, bool update = true);
+[native] bool SetPickupVirtualWorld(int pickupid, int virtualWorld);
+[native] bool SetPlayerPickupModel(int playerid, int pickupid, int model, bool update = true);
+[native] bool SetPlayerPickupPos(int playerid, int pickupid, float x, float y, float z, bool update = true);
+[native] bool SetPlayerPickupType(int playerid, int pickupid, int type, bool update = true);
+[native] bool SetPlayerPickupVirtualWorld(int playerid, int pickupid, int virtualWorld);
+[native] bool ShowPickupForPlayer(int playerid, int pickupid);

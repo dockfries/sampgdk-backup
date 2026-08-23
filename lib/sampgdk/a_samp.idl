@@ -604,3 +604,42 @@ const int DOWNLOAD_REQUEST_MODEL_FILE     = 1;
 const int DOWNLOAD_REQUEST_TEXTURE_FILE   = 2;
 
 [callback, badret(true)] bool OnPlayerRequestDownload(int playerid, int type, int crc);
+
+/* --- open.mp callbacks (added for index-table completeness) --- */
+
+[callback] bool OnScriptLoadPlayer(int playerid, bool isEntryScript);
+[callback] bool OnScriptUnloadPlayer(int playerid, bool isEntryScript);
+
+[callback] bool OnPlayerEnterGangZone(int playerid, int zoneid);
+[callback] bool OnPlayerLeaveGangZone(int playerid, int zoneid);
+[callback] bool OnPlayerEnterPlayerGangZone(int playerid, int zoneid);
+[callback] bool OnPlayerLeavePlayerGangZone(int playerid, int zoneid);
+[callback] bool OnPlayerClickGangZone(int playerid, int zoneid);
+[callback] bool OnPlayerClickPlayerGangZone(int playerid, int zoneid);
+
+[callback] bool OnClientCheckResponse(int playerid, int actionid, int memaddr, int retndata);
+[callback] bool OnPlayerFinishedDownloading(int playerid, int virtualworld);
+
+[callback] bool OnNPCFinishMove(int npcid);
+[callback] bool OnNPCCreate(int npcid);
+[callback] bool OnNPCDestroy(int npcid);
+[callback] bool OnNPCSpawn(int npcid);
+[callback] bool OnNPCRespawn(int npcid);
+[callback] bool OnNPCWeaponStateChange(int npcid, int newState, int oldState);
+[callback] bool OnNPCTakeDamage(int npcid, int issuerid, float amount, int weaponid, int bodypart);
+[callback] bool OnNPCGiveDamage(int npcid, int damagedid, float amount, int weaponid, int bodypart);
+[callback] bool OnNPCDeath(int npcid, int killerid, int reason);
+[callback] bool OnNPCPlaybackStart(int npcid, int recordid);
+[callback] bool OnNPCPlaybackEnd(int npcid, int recordid);
+[callback] bool OnNPCWeaponShot(int npcid, int weaponid, int hittype, int hitid, float fX, float fY, float fZ);
+[callback] bool OnNPCFinishNodePoint(int npcid, int nodeid, int pointid);
+[callback] bool OnNPCFinishNode(int npcid, int nodeid);
+[callback] bool OnNPCChangeNode(int npcid, int newnodeid, int oldnodeid);
+[callback] bool OnNPCFinishMovePath(int npcid, int pathid);
+[callback] bool OnNPCFinishMovePathPoint(int npcid, int pathid, int pointid);
+
+[callback] bool OnPlayerPickUpPlayerPickup(int playerid, int pickupid);
+[callback] bool OnPickupStreamIn(int pickupid, int playerid);
+[callback] bool OnPickupStreamOut(int pickupid, int playerid);
+[callback] bool OnPlayerPickupStreamIn(int pickupid, int playerid);
+[callback] bool OnPlayerPickupStreamOut(int pickupid, int playerid);

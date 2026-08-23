@@ -1,0 +1,19 @@
+/* Generated from open.mp include omp_database.inc; natives not present in a_*.idl */
+[native] bool DB_Close(int db);
+[native] int DB_ExecuteQuery(int db, string query);
+[native] bool DB_FreeResultSet(int result);
+[native] int DB_GetDatabaseConnectionCount();
+[native] int DB_GetDatabaseResultSetCount();
+[native] int DB_GetFieldCount(int result);
+[native] float DB_GetFieldFloat(int result, int field = 0);
+[native] float DB_GetFieldFloatByName(int result, string field);
+[native] int DB_GetFieldInt(int result, int field = 0);
+[native] int DB_GetFieldIntByName(int result, string field);
+[native] bool DB_GetFieldName(int result, int field, [out] string output, int size);
+[native] bool DB_GetFieldString(int result, int field, [out] string output, int size);
+[native] bool DB_GetFieldStringByName(int result, string field, [out] string output, int size);
+[native] int DB_GetLegacyDBResult(int result);
+[native] int DB_GetMemHandle(int db);
+[native] int DB_GetRowCount(int result);
+[native] int DB_Open(string name, int flags);
+[native] bool DB_SelectNextRow(int result);

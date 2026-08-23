@@ -18,6 +18,7 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "amx.h"
 #include "array.h"
 #include "callback.h"
 #include "init.h"
@@ -171,12 +172,17 @@ bool sampgdk_callback_get(int index, char **name) {
 
   assert(name != NULL);
 
-  if (index < 0 || index >= _sampgdk_callbacks.count) {
+  /* index here is the value passed to amx_Exec() for a forged public
+   * (AMX_EXEC_GDK - table_position); recover the table position.
+   */
+  int pos = AMX_EXEC_GDK - index;
+
+  if (pos < 0 || pos >= _sampgdk_callbacks.count) {
     return false;
   }
 
   callback = (struct _sampgdk_callback_info *)sampgdk_array_get(
-      &_sampgdk_callbacks, index);
+      &_sampgdk_callbacks, pos);
   *name = callback->name;
 
   return true;

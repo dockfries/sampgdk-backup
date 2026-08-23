@@ -3,17 +3,21 @@ project(sampgdk)
 cmake_minimum_required(VERSION 3.5)
 cmake_policy(SET CMP0022 NEW)
 
+# cmake/modules is the samp-cmake-modules submodule (shared build modules);
+# cmake holds sampgdk-specific files (packaging config, toolchain).
+list(APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake/modules)
 list(APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake)
 
 option(SAMPGDK_STATIC "Build static library instead" OFF)
 option(SAMPGDK_BUILD_PLUGINS "Build example plugins" OFF)
 option(SAMPGDK_BUILD_AMALGAMATION "Build amalgamation" OFF)
 option(SAMPGDK_BUILD_DOCS "Build Doxygen documentation" ON)
+option(SAMPGDK_TINY "Build tiny version (callbacks only, no open.mp natives)" OFF)
 option(SAMPGDK_ARCH "Target architecture (32 or 64)" 32)
 
-set(SAMPGDK_VERSION_MAJOR 4)
-set(SAMPGDK_VERSION_MINOR 6)
-set(SAMPGDK_VERSION_PATCH 3)
+set(SAMPGDK_VERSION_MAJOR 5)
+set(SAMPGDK_VERSION_MINOR 0)
+set(SAMPGDK_VERSION_PATCH 0)
 
 set(SAMPGDK_VERSION ${SAMPGDK_VERSION_MAJOR})
 set(SAMPGDK_VERSION ${SAMPGDK_VERSION}.${SAMPGDK_VERSION_MINOR})

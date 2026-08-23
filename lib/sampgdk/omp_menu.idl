@@ -1,0 +1,9 @@
+/* Generated from open.mp include omp_menu.inc; natives not present in a_*.idl */
+[native] bool GetMenuColumnHeader(int menuid, int column, [out] string header, int len);
+[native] bool GetMenuColumnWidth(int menuid, [out] float column1Width, [out] float column2Width);
+[native] int GetMenuColumns(int menuid);
+[native] bool GetMenuItem(int menuid, int column, int row, [out] string cell_, int len);
+[native] int GetMenuItems(int menuid, int column);
+[native] bool GetMenuPos(int menuid, [out] float x, [out] float y);
+[native] bool IsMenuDisabled(int menuid);
+[native] bool IsMenuRowDisabled(int menuid, int row);
