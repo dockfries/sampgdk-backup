@@ -63,11 +63,20 @@ PLUGIN_EXPORT bool PLUGIN_CALL OnPlayerCommandText(int playerid,
 构建说明
 ----------
 
+本仓库使用了 git 子模块，因此克隆时请加上 `--recursive`（或者在普通克隆后
+执行 `git submodule update --init --recursive`）：
+
+```sh
+git clone --recursive https://github.com/dockfries/sampgdk-backup.git
+```
+
 要构建 GDK，你首先需要下载并安装以下依赖：
 
-* [SA-MP 插件 SDK][sdk]
-* [CMake][cmake] 2.8.12+
-* [Python][python] 2.7+
+* [SA-MP 插件 SDK][sdk]（以子模块形式位于 `deps/` 下）
+* [open.mp Pawn 库][omp_stdlib]（以子模块形式位于 `deps/omp-stdlib` 下，
+  供代码生成脚本使用）
+* [CMake][cmake] 3.5+
+* [Python][python] 3.x
 * [PLY][ply]（Python Lex-Yacc），可以通过 [pip][pip] 安装
 * C 编译器
 * C++ 编译器（可选，用于构建示例插件）
@@ -88,6 +97,9 @@ cmake --build . --config Release --target install
 * `SAMPGDK_BUILD_PLUGINS`      - 构建示例插件（默认是 OFF）
 * `SAMPGDK_BUILD_AMALGAMATION` - 构建合并（amalgamation）文件（默认是 OFF）
 * `SAMPGDK_BUILD_DOCS`         - 构建 Doxygen 文档（默认是 ON）
+* `SAMPGDK_TINY`               - 精简构建：只生成回调，不生成 IDL native
+                                 （默认是 OFF）
+* `SAMPGDK_ARCH`               - 目标架构：32 或 64（默认 32）
 
 例如，将 GDK 构建为静态库并同时构建示例插件：
 
@@ -120,7 +132,7 @@ cmake .. -DSAMPGDK_STATIC=ON -DSAMPGDK_BUILD_PLUGINS=ON
 本仓库（如果还没克隆的话），然后为你的个人项目创建一个新的本地分支：
 
 ```
-git clone https://github.com/dockfries/sampgdk-backup.git
+git clone --recursive https://github.com/dockfries/sampgdk-backup.git
 git checkout -b my-project
 ```
 
@@ -144,6 +156,7 @@ git merge v1.2.3
 [github]: https://github.com/dockfries/sampgdk-backup
 [version]: https://github.com/dockfries/sampgdk-backup/releases
 [sdk]: https://github.com/AmyrAhmady/samp-plugin-sdk
+[omp_stdlib]: https://github.com/openmultiplayer/omp-stdlib
 [cmake]: https://cmake.org/
 [python]: https://www.python.org/
 [ply]: https://pypi.org/project/ply/

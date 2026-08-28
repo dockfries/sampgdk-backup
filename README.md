@@ -65,12 +65,21 @@ PLUGIN_EXPORT bool PLUGIN_CALL OnPlayerCommandText(int playerid,
 Build Instructions
 ------------------
 
+The repository uses git submodules, so clone it with `--recursive` (or run
+`git submodule update --init --recursive` after a plain clone):
+
+```sh
+git clone --recursive https://github.com/dockfries/sampgdk-backup.git
+```
+
 In order to build the GDK you first you need to download and install the
 following dependencies:
 
-* [SA-MP plugin SDK][sdk]
-* [CMake][cmake] 2.8.12+
-* [Python][python] 2.7+
+* [SA-MP plugin SDK][sdk] (pulled in as a submodule under `deps/`)
+* [open.mp Pawn library][omp_stdlib] (pulled in as a submodule under
+  `deps/omp-stdlib`; used by the code generation scripts)
+* [CMake][cmake] 3.5+
+* [Python][python] 3.x
 * [PLY][ply] (Python Lex-Yacc) can be installed via [pip][pip]
 * C compiler
 * C++ compiler (optional, for building example plugins)
@@ -93,6 +102,9 @@ following options:
 * `SAMPGDK_BUILD_PLUGINS`      - Build example plugins (default is OFF)
 * `SAMPGDK_BUILD_AMALGAMATION` - Build amalgamation (default is OFF)
 * `SAMPGDK_BUILD_DOCS`         - Build Doxygen documentation (default is ON)
+* `SAMPGDK_TINY`               - Tiny build: callbacks only, no IDL natives
+                                 (default is OFF)
+* `SAMPGDK_ARCH`               - Target architecture: 32 or 64 (default 32)
 
 For example, to build GDK as a static library together with example
 plugins:
@@ -130,7 +142,7 @@ the easiest way to get started is probably to clone this repo (if you haven't
 done so) and create a new local branch for your personal project:
 
 ```
-git clone https://github.com/dockfries/sampgdk-backup.git
+git clone --recursive https://github.com/dockfries/sampgdk-backup.git
 git checkout -b my-project
 ```
 
@@ -156,6 +168,7 @@ Licensed under the Apache License version 2.0. See the LICENSE.txt file.
 [github]: https://github.com/dockfries/sampgdk-backup
 [version]: https://github.com/dockfries/sampgdk-backup/releases
 [sdk]: https://github.com/AmyrAhmady/samp-plugin-sdk
+[omp_stdlib]: https://github.com/openmultiplayer/omp-stdlib
 [cmake]: https://cmake.org/
 [python]: https://www.python.org/
 [ply]: https://pypi.org/project/ply/

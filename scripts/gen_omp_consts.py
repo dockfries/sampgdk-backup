@@ -3,15 +3,20 @@ import re
 import glob
 import sys
 
-# Include directory is passed as a command-line argument so no private
-# absolute paths are baked into this file.
-if len(sys.argv) < 2:
-    print('Usage: gen_omp_consts.py <open.mp-include-dir>')
-    sys.exit(1)
-INC = sys.argv[1]
+# Include directory may be passed as a command-line argument; otherwise the
+# deps/omp-stdlib submodule relative to this script is used.
+HERE = os.path.dirname(os.path.abspath(__file__))
+if len(sys.argv) >= 2:
+    INC = sys.argv[1]
+else:
+    INC = os.path.join(HERE, '..', 'deps', 'omp-stdlib')
+    if not os.path.isdir(INC):
+        print('Usage: gen_omp_consts.py [open.mp-include-dir]')
+        print('deps/omp-stdlib submodule not found; run:')
+        print('  git submodule update --init deps/omp-stdlib')
+        sys.exit(1)
 
 # Everything else is derived relative to this script's location.
-HERE = os.path.dirname(os.path.abspath(__file__))
 LIB = os.path.join(HERE, '..', 'lib', 'sampgdk')
 
 # constants already in sampgdk
