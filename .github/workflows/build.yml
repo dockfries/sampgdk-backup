@@ -18,7 +18,7 @@ jobs:
             artifact: sampgdk-tiny
     runs-on: windows-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           submodules: recursive
 
@@ -72,7 +72,7 @@ jobs:
       # source, so both 32-bit and 64-bit plugins can consume it. The
       # built sampgdk5.dll is 64-bit only and is not distributed.
       - name: Upload amalgamation
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: ${{ matrix.artifact }}
           path: |
