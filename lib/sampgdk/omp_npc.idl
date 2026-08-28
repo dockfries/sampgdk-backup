@@ -1,5 +1,5 @@
 /* Generated from open.mp include omp_npc.inc; natives not present in a_*.idl */
-[native] bool NPC_AddPointToPath(int pathid, float x, float y, float z, float stopRange);
+[native] bool NPC_AddPointToPath(int pathid, float x, float y, float z, float stopRange = 0.2);
 [native] int NPC_AimAt(int npcid, float pointX, float pointY, float pointZ, bool shoot, int shootDelay, bool updateAngle, float offsetFromX, float offsetFromY, float offsetFromZ, int checkInBetweenFlags);
 [native] int NPC_AimAtPlayer(int npcid, int playerid, bool shoot, int shootDelay, bool updateAngle, float offsetX, float offsetY, float offsetZ, float offsetFromX, float offsetFromY, float offsetFromZ, int checkInBetweenFlags);
 [native] int NPC_ApplyAnimation(int npcid, string animlib, string animname, float delta, bool loop, bool lockX, bool lockY, bool freeze, int time);
@@ -12,8 +12,8 @@
 [native] int NPC_Destroy(int npcid);
 [native] bool NPC_DestroyAllPath();
 [native] bool NPC_DestroyPath(int pathid);
-[native] bool NPC_EnableInfiniteAmmo(int npcid, bool enable);
-[native] bool NPC_EnableReloading(int npcid, bool enable);
+[native] bool NPC_EnableInfiniteAmmo(int npcid, bool enable = true);
+[native] bool NPC_EnableReloading(int npcid, bool enable = true);
 [native] bool NPC_EnterVehicle(int npcid, int vehicleid, int seatid, int moveType);
 [native] bool NPC_ExitVehicle(int npcid);
 [native] int NPC_GetAll([out] string npcs, int size);
@@ -95,12 +95,12 @@
 [native] bool NPC_IsVehicleSirenUsed(int npcid);
 [native] int NPC_Kill(int npcid, int killerid, int reason);
 [native] int NPC_LoadRecord(string filePath);
-[native] bool NPC_MeleeAttack(int npcid, int time, bool secondaryAttack = false);
+[native] bool NPC_MeleeAttack(int npcid, int time = -1, bool secondaryAttack = false);
 [native] int NPC_Move(int npcid, float x, float y, float z, int moveType, float moveSpeed, float stopRange = 0.2);
 [native] bool NPC_MoveByPath(int npcid, int pathid, int moveType, float moveSpeed, bool reversed = false);
 [native] int NPC_MoveToPlayer(int npcid, int playerid, int moveType, float moveSpeed, float stopRange = 0.2, int updateDelayMS = 500, int autoRestart = false);
 [native] bool NPC_OpenNode(int nodeid);
-[native] bool NPC_PausePlayback(int npcid, bool paused);
+[native] bool NPC_PausePlayback(int npcid, bool paused = true);
 [native] bool NPC_PausePlayingNode(int npcid);
 [native] bool NPC_PlayNode(int npcid, int nodeid, int moveType, float speed, float radius = 0.0, bool setAngle = true);
 [native] bool NPC_PutInVehicle(int npcid, int vehicleid, int seatid);
@@ -120,7 +120,7 @@
 [native] int NPC_SetFightingStyle(int npcid, int style);
 [native] int NPC_SetHealth(int npcid, float health);
 [native] int NPC_SetInterior(int npcid, int interiorid);
-[native] int NPC_SetInvulnerable(int npcid, bool toggle);
+[native] int NPC_SetInvulnerable(int npcid, bool toggle = true);
 [native] int NPC_SetKeys(int npcid, int upAndDown, int leftAndRight, int keys);
 [native] bool NPC_SetNodePoint(int nodeid, int pointid);
 [native] int NPC_SetPos(int npcid, float x, float y, float z);
@@ -146,8 +146,8 @@
 [native] int NPC_SetWeaponState(int npcid, int weaponState);
 [native] int NPC_Shoot(int npcid, int weaponid, int hitId, int hitType, float endPointX, float endPointY, float endPointZ, float offsetX, float offsetY, float offsetZ, bool isHit, int checkInBetweenFlags);
 [native] int NPC_Spawn(int npcid);
-[native] bool NPC_StartPlayback(int npcid, string recordName, bool autoUnload, float startX, float startY, float startZ, float rotX, float rotY, float rotZ);
-[native] bool NPC_StartPlaybackEx(int npcid, int recordId, bool autoUnload, float startX, float startY, float startZ, float rotX, float rotY, float rotZ);
+[native] bool NPC_StartPlayback(int npcid, string recordName, bool autoUnload = false, float startX = 0.0, float startY = 0.0, float startZ = 0.0, float rotX = 0.0, float rotY = 0.0, float rotZ = 0.0);
+[native] bool NPC_StartPlaybackEx(int npcid, int recordId, bool autoUnload = false, float startX = 0.0, float startY = 0.0, float startZ = 0.0, float rotX = 0.0, float rotY = 0.0, float rotZ = 0.0);
 [native] bool NPC_StopAim(int npcid);
 [native] bool NPC_StopMeleeAttack(int npcid);
 [native] bool NPC_StopMove(int npcid);

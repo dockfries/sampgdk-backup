@@ -4,3 +4,6 @@
 [submodule "deps/samp-plugin-sdk"]
 	path = deps/samp-plugin-sdk
 	url = https://github.com/AmyrAhmady/samp-plugin-sdk.git
+[submodule "deps/omp-stdlib"]
+	path = deps/omp-stdlib
+	url = https://github.com/openmultiplayer/omp-stdlib.git

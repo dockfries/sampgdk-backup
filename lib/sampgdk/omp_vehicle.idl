@@ -22,6 +22,7 @@
 [native] int GetVehiclePaintjob(int vehicleid);
 [native] int GetVehicleRespawnDelay(int vehicleid);
 [native] int GetVehicleRespawnTick(int vehicleid);
+[native] bool GetVehicleRotation(int vehicleid, [out] float x, [out] float y, [out] float z);
 [native] int GetVehicleSeats(int vehicleid);
 [native] bool GetVehicleSirenState(int vehicleid);
 [native] bool GetVehicleSpawnInfo(int vehicleid, [out] float spawnX, [out] float spawnY, [out] float spawnZ, [out] float angle, [out] int colour1, [out] int colour2);
@@ -37,4 +38,4 @@
 [native] bool SetVehicleRespawnDelay(int vehicleid, int respawnDelay);
 [native] bool SetVehicleSpawnInfo(int vehicleid, int modelid, float spawnX, float spawnY, float spawnZ, float angle, int colour1, int colour2, int respawnDelay = -2, int interior = -2);
 [native] bool ToggleVehicleSirenEnabled(int vehicleid, bool enabled);
-[native] bool VehicleCanHaveComponent(int vehicleid, int componentid);
+[native] bool VehicleCanHaveComponent(int modelid, int componentid);
