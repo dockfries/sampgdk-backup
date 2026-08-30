@@ -27,8 +27,6 @@
   #include <stdint.h>
   #include <unistd.h>
   #include <sys/mman.h>
-
-  void __builtin___clear_cache(void *, void *);  /* GCC/Clang builtin */
 #endif
 
 #include "log.h"
@@ -478,13 +476,29 @@ static size_t _sampgdk_hook_disasm(uint8_t *code, int *reloc) {
       len += 4; /* disp32 */
 #ifdef SAMPGDK_64BIT
       if (!addr32) {
-        /* RIP-relative: the trampoline runs at a different address, so the
-         * disp32 must be adjusted by -(trampoline - src) just like rel32
-         * CALL/JMP. mod=00 rm=101 with the 0x67 address-size override is
-         * absolute (EAX-relative addressing is not RIP-relative).
-         * reloc_offset points at the disp32 field (len now includes it). */
-        riprel = 1;
-        reloc_offset = len - 4;
+        int reg = (modrm >> 3) & 7;
+        /* FF 25 00 00 00 00 <8-byte addr>: the absolute indirect jump the
+         * hook trampoline itself uses (jmp [rip+0] reads the 8-byte target
+         * that immediately follows). This is position-independent: the
+         * disp32 stays 0 and the embedded absolute address is copied
+         * unchanged, so when a second plugin hooks an already-hooked
+         * function, the copied jump keeps chaining to the first plugin.
+         * Count the trailing 8-byte target as part of the instruction and
+         * do NOT relocate the disp. */
+        if (opcode == 0xFF && reg == 4 &&
+            code[len - 4] == 0 && code[len - 3] == 0 &&
+            code[len - 2] == 0 && code[len - 1] == 0) {
+          len += 8; /* embedded 8-byte absolute target */
+        } else {
+          /* genuine RIP-relative memory operand: the trampoline runs at a
+           * different address, so the disp32 must be adjusted by
+           * -(trampoline - src) just like rel32 CALL/JMP. mod=00 rm=101
+           * with the 0x67 address-size override is absolute (EAX-relative
+           * addressing is not RIP-relative). reloc_offset points at the
+           * disp32 field (len now includes it). */
+          riprel = 1;
+          reloc_offset = len - 4;
+        }
       }
 #endif
     }
@@ -601,15 +615,13 @@ sampgdk_hook_t sampgdk_hook_new(void *src, void *dst) {
 #endif
   _sampgdk_hook_write_jmp(src, dst, 0);
 
-#if SAMPGDK_WINDOWS
-  FlushInstructionCache(GetCurrentProcess(), src, _SAMPGDK_HOOK_JMP_SIZE);
-  FlushInstructionCache(GetCurrentProcess(), hook->trampoline,
-                        _SAMPGDK_HOOK_TRAMPOLINE_SIZE);
-#else
-  __builtin___clear_cache((char *)src, (char *)src + _SAMPGDK_HOOK_JMP_SIZE);
-  __builtin___clear_cache((char *)hook->trampoline,
-                          (char *)hook->trampoline + _SAMPGDK_HOOK_TRAMPOLINE_SIZE);
-#endif
+  /* No explicit instruction-cache flush is needed on x86/x64: the
+   * hardware's cache-coherency protocol (plus the natural serialization of
+   * a call to the patched function, which is always on another thread or
+   * after a synchronization point in practice) makes the new bytes visible
+   * to every core. The kernel flush APIs would be no-ops here anyway;
+   * they only matter on architectures with explicit I-cache maintenance
+   * (e.g. ARM), which sampgdk does not target. */
 
   return hook;
 }
