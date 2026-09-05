@@ -114,6 +114,16 @@ class Value(cidl.Value):
       return '_codegen_invalid_literal_'
     return string
 
+def c_decl(ctype, name):
+  """Join a C type and a variable name so a pointer star binds to the name
+  (``float *x``), matching the style used across the handwritten code.
+  ctype already carries its ``*`` (e.g. ``'float *'``), so when it ends in
+  ``*`` nothing is inserted before the name; otherwise a space separates
+  the type from the name (``int x``)."""
+  if ctype.endswith('*'):
+    return ctype + name
+  return ctype + ' ' + name
+
 class ParameterList:
   def __init__(self, params, includes_types=True, includes_defaults=False):
     self._params = params
@@ -124,7 +134,7 @@ class ParameterList:
     for p in filter(lambda p: not p.is_bound, self._params):
       s = p.name
       if self._includes_types:
-        s = '%s %s' % (p.c_type, s)
+        s = c_decl(p.c_type, s)
       if self._includes_defaults and p.default is not None:
         s = '%s = %s' % (s, p.default)
       yield s
@@ -382,7 +392,7 @@ def generate_callback_impl(file, func):
       raise Exception('%s: badret must be of type "bool"' % func.name)
 
   for p in func.params:
-    file.write('  %s %s;\n' % (p.c_type, p.name))
+    file.write('  %s;\n' % c_decl(p.c_type, p.name))
 
   for index, p in enumerate(func.params):
     file.write('  sampgdk_param_get_%s(amx, %d, (%s *)&%s);\n' % ({
