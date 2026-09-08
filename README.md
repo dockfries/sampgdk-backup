@@ -78,10 +78,12 @@ following dependencies:
 * [SA-MP plugin SDK][sdk] (pulled in as a submodule under `deps/`)
 * [open.mp Pawn library][omp_stdlib] (pulled in as a submodule under
   `deps/omp-stdlib`; used by the code generation scripts)
+* [Zydis][zydis] x86/x64 decoder (pulled in as a submodule under
+  `deps/zydis`; used by the hooking engine)
 * [CMake][cmake] 3.5+
 * [Python][python] 3.x
 * [PLY][ply] (Python Lex-Yacc) can be installed via [pip][pip]
-* C compiler
+* C compiler (the vendored Zydis decoder requires C11 or later)
 * C++ compiler (optional, for building example plugins)
 
 Once all dependencies are installed you can use the following commands to
@@ -98,13 +100,12 @@ cmake --build . --config Release --target install
 You can pass additional arguments to CMake and change one or more of the
 following options:
 
-* `SAMPGDK_STATIC`             - Build as static library (default is OFF)
-* `SAMPGDK_BUILD_PLUGINS`      - Build example plugins (default is OFF)
-* `SAMPGDK_BUILD_AMALGAMATION` - Build amalgamation (default is OFF)
-* `SAMPGDK_BUILD_DOCS`         - Build Doxygen documentation (default is ON)
-* `SAMPGDK_TINY`               - Tiny build: callbacks only, no IDL natives
-                                 (default is OFF)
-* `SAMPGDK_ARCH`               - Target architecture: 32 or 64 (default 32)
+* `SAMPGDK_STATIC`        - Build as static library (default is OFF)
+* `SAMPGDK_BUILD_PLUGINS` - Build example plugins (default is OFF)
+* `SAMPGDK_BUILD_DOCS`    - Build Doxygen documentation (default is ON)
+* `SAMPGDK_TINY`          - Tiny build: callbacks only, no IDL natives
+                            (default is OFF)
+* `SAMPGDK_ARCH`          - Target architecture: 32 or 64 (default 32)
 
 For example, to build GDK as a static library together with example
 plugins:
@@ -112,6 +113,26 @@ plugins:
 ```sh
 cmake .. -DSAMPGDK_STATIC=ON -DSAMPGDK_BUILD_PLUGINS=ON
 ```
+
+### Using sampgdk as a git submodule
+
+sampgdk is designed to be consumed from another CMake project via
+`add_subdirectory`. Add it as a submodule and link the `sampgdk` target:
+
+```sh
+git submodule add https://github.com/dockfries/sampgdk-backup.git deps/sampgdk
+git submodule update --init --recursive   # pulls sampgdk's own submodules
+```
+
+```cmake
+add_subdirectory(deps/sampgdk)
+target_link_libraries(my_target sampgdk)  # headers + Zydis propagate transitively
+```
+
+The `sampgdk` target propagates its include directories and its Zydis
+dependency through `target_link_libraries`, so no extra include paths are
+needed. The SA-MP plugin SDK is found under sampgdk's own `deps/` submodule
+unless you set `SAMPSDK_DIR` or `SAMP_SDK_ROOT` before adding the directory.
 
 The following built-in variables may also be useful:
 
@@ -132,8 +153,8 @@ the GDK header files.
 
 If you feel like making a new project there's
 some information in the [doc/](doc/) directory on setting up a GDK project,
-including building the Doxygen documentation and using the amalgamation
-files. No prior knowledge of CMake is required to follow it.
+including building the Doxygen documentation. No prior knowledge of CMake is
+required to follow it.
 
 ### Using Git
 
@@ -169,6 +190,7 @@ Licensed under the Apache License version 2.0. See the LICENSE.txt file.
 [version]: https://github.com/dockfries/sampgdk-backup/releases
 [sdk]: https://github.com/AmyrAhmady/samp-plugin-sdk
 [omp_stdlib]: https://github.com/openmultiplayer/omp-stdlib
+[zydis]: https://github.com/zyantific/zydis
 [cmake]: https://cmake.org/
 [python]: https://www.python.org/
 [ply]: https://pypi.org/project/ply/

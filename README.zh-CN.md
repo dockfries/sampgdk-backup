@@ -75,10 +75,12 @@ git clone --recursive https://github.com/dockfries/sampgdk-backup.git
 * [SA-MP 插件 SDK][sdk]（以子模块形式位于 `deps/` 下）
 * [open.mp Pawn 库][omp_stdlib]（以子模块形式位于 `deps/omp-stdlib` 下，
   供代码生成脚本使用）
+* [Zydis][zydis] x86/x64 解码器（以子模块形式位于 `deps/zydis` 下，
+  供 hook 引擎使用）
 * [CMake][cmake] 3.5+
 * [Python][python] 3.x
 * [PLY][ply]（Python Lex-Yacc），可以通过 [pip][pip] 安装
-* C 编译器
+* C 编译器（vendored Zydis 解码器需要 C11 或更高版本）
 * C++ 编译器（可选，用于构建示例插件）
 
 安装完所有依赖后，你可以使用以下命令构建并安装这个库：
@@ -93,19 +95,38 @@ cmake --build . --config Release --target install
 
 你可以向 CMake 传入额外的参数，并修改以下一个或多个选项：
 
-* `SAMPGDK_STATIC`             - 构建为静态库（默认是 OFF）
-* `SAMPGDK_BUILD_PLUGINS`      - 构建示例插件（默认是 OFF）
-* `SAMPGDK_BUILD_AMALGAMATION` - 构建合并（amalgamation）文件（默认是 OFF）
-* `SAMPGDK_BUILD_DOCS`         - 构建 Doxygen 文档（默认是 ON）
-* `SAMPGDK_TINY`               - 精简构建：只生成回调，不生成 IDL native
-                                 （默认是 OFF）
-* `SAMPGDK_ARCH`               - 目标架构：32 或 64（默认 32）
+* `SAMPGDK_STATIC`        - 构建为静态库（默认是 OFF）
+* `SAMPGDK_BUILD_PLUGINS` - 构建示例插件（默认是 OFF）
+* `SAMPGDK_BUILD_DOCS`    - 构建 Doxygen 文档（默认是 ON）
+* `SAMPGDK_TINY`          - 精简构建：只生成回调，不生成 IDL native
+                            （默认是 OFF）
+* `SAMPGDK_ARCH`          - 目标架构：32 或 64（默认 32）
 
 例如，将 GDK 构建为静态库并同时构建示例插件：
 
 ```sh
 cmake .. -DSAMPGDK_STATIC=ON -DSAMPGDK_BUILD_PLUGINS=ON
 ```
+
+### 将 sampgdk 作为 git submodule 使用
+
+sampgdk 设计为可从另一个 CMake 工程通过 `add_subdirectory` 消费。把它加为
+子模块并链接 `sampgdk` target 即可：
+
+```sh
+git submodule add https://github.com/dockfries/sampgdk-backup.git deps/sampgdk
+git submodule update --init --recursive   # 拉取 sampgdk 自身的子模块
+```
+
+```cmake
+add_subdirectory(deps/sampgdk)
+target_link_libraries(my_target sampgdk)  # 头文件与 Zydis 依赖自动传递
+```
+
+`sampgdk` target 通过 `target_link_libraries` 传递其 include 目录和 Zydis
+依赖，因此无需额外添加 include 路径。除非你在添加目录前自行设置了
+`SAMPSDK_DIR` 或 `SAMP_SDK_ROOT`，否则 SA-MP 插件 SDK 会从 sampgdk 自己的
+`deps/` 子模块中查找。
 
 以下内置变量可能也很有用：
 
@@ -123,7 +144,7 @@ cmake .. -DSAMPGDK_STATIC=ON -DSAMPGDK_BUILD_PLUGINS=ON
 可以查看 [这里][online_docs] 的文档，也可以在 GDK 的头文件中查看。
 
 如果你想创建一个新项目，仓库中的 [doc/](doc/) 目录提供了关于 CMake 的说明
-（包括 Doxygen 文档构建和合并文件的使用方法）。即使你之前完全没有 CMake
+（包括 Doxygen 文档构建）。即使你之前完全没有 CMake
 经验，也可以照着做。
 
 ### 使用 Git
@@ -157,6 +178,7 @@ git merge v1.2.3
 [version]: https://github.com/dockfries/sampgdk-backup/releases
 [sdk]: https://github.com/AmyrAhmady/samp-plugin-sdk
 [omp_stdlib]: https://github.com/openmultiplayer/omp-stdlib
+[zydis]: https://github.com/zyantific/zydis
 [cmake]: https://cmake.org/
 [python]: https://www.python.org/
 [ply]: https://pypi.org/project/ply/
