@@ -8,15 +8,30 @@ jobs:
   build:
     name: ${{ matrix.name }}
     strategy:
+      fail-fast: false
       matrix:
         include:
-          - name: full
+          - name: windows-x64-full
+            os: windows-latest
+            arch: x64
             tiny: false
-            artifact: sampgdk-full
-          - name: tiny
+            python: python
+          - name: windows-x64-tiny
+            os: windows-latest
+            arch: x64
             tiny: true
-            artifact: sampgdk-tiny
-    runs-on: windows-latest
+            python: python
+          - name: windows-x86-full
+            os: windows-latest
+            arch: Win32
+            tiny: false
+            python: python
+          - name: ubuntu-x64-full
+            os: ubuntu-latest
+            arch: 64
+            tiny: false
+            python: python3
+    runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v7
         with:
@@ -24,57 +39,54 @@ jobs:
 
       # Code generation (scripts/generate_code.py) requires ply.
       - name: Install Python dependencies
-        run: python -m pip install ply
+        shell: bash
+        run: ${{ matrix.python }} -m pip install ply
 
-      - name: Configure CMake
+      - name: Configure CMake (Windows)
+        if: startsWith(matrix.os, 'windows')
         shell: powershell
         run: |
-          cmake -S . -B build -A x64 `
+          cmake -S . -B build -A ${{ matrix.arch }} `
             -DSAMPGDK_BUILD_DOCS=OFF `
             -DSAMPGDK_BUILD_PLUGINS=ON `
-            -DSAMPGDK_BUILD_AMALGAMATION=ON `
-            -DSAMPGDK_TINY=${{ matrix.tiny }} `
-            -DSAMPSDK_DIR=${{ github.workspace }}/deps/samp-plugin-sdk
+            -DSAMPGDK_TINY=${{ matrix.tiny }}
+
+      # Example plugins are Windows-focused (link against .def exports); the
+      # Linux job covers the library build instead.
+      - name: Configure CMake (Linux)
+        if: startsWith(matrix.os, 'ubuntu')
+        shell: bash
+        run: |
+          cmake -S . -B build -DCMAKE_BUILD_TYPE=RelWithDebInfo \
+            -DSAMPGDK_ARCH=${{ matrix.arch }} \
+            -DSAMPGDK_BUILD_DOCS=OFF \
+            -DSAMPGDK_BUILD_PLUGINS=OFF \
+            -DSAMPGDK_TINY=${{ matrix.tiny }}
 
       - name: Build
-        shell: powershell
-        run: |
-          cmake --build build --config RelWithDebInfo --parallel
+        shell: bash
+        run: cmake --build build --config RelWithDebInfo --parallel
 
-      - name: Build amalgamation
-        shell: powershell
-        run: |
-          cmake --build build --target sampgdk_amalgamate --config RelWithDebInfo
-
-      - name: Verify artifacts (full)
-        if: ${{ !matrix.tiny }}
+      - name: Verify artifacts (Windows full)
+        if: startsWith(matrix.os, 'windows') && !matrix.tiny
         shell: bash
         run: |
           test -f build/RelWithDebInfo/sampgdk5.dll
-          test -f build/lib/sampgdk/sampgdk.c
-          test -f build/lib/sampgdk/sampgdk.h
           # plugins built as compile smoke-test
           test -f build/plugins/helloworld/RelWithDebInfo/helloworld.dll
           test -f build/plugins/omp_example/RelWithDebInfo/omp_example.dll
 
-      - name: Verify artifacts (tiny)
-        if: ${{ matrix.tiny }}
+      - name: Verify artifacts (Windows tiny)
+        if: startsWith(matrix.os, 'windows') && matrix.tiny
         shell: bash
         run: |
           test -f build/RelWithDebInfo/sampgdk5.dll
-          test -f build/lib/sampgdk/sampgdk.c
-          test -f build/lib/sampgdk/sampgdk.h
-          # helloworld requires IDL natives and is not built in the tiny
-          # build; ufs only uses the interop API and is built as a smoke test.
+          # ufs only uses the interop API and is built as a smoke test.
           test -f build/plugins/ufs/RelWithDebInfo/ufs.dll
 
-      # Only the amalgamation is published: it is architecture-neutral
-      # source, so both 32-bit and 64-bit plugins can consume it. The
-      # built sampgdk5.dll is 64-bit only and is not distributed.
-      - name: Upload amalgamation
-        uses: actions/upload-artifact@v7
-        with:
-          name: ${{ matrix.artifact }}
-          path: |
-            build/lib/sampgdk/sampgdk.c
-            build/lib/sampgdk/sampgdk.h
+      - name: Verify artifacts (Linux)
+        if: startsWith(matrix.os, 'ubuntu')
+        shell: bash
+        run: |
+          # the shared library built against the POSIX mprotect path
+          test -f build/libsampgdk.so
