@@ -1,7 +1,15 @@
-project(sampgdk)
-
 cmake_minimum_required(VERSION 3.5)
 cmake_policy(SET CMP0022 NEW)
+
+project(sampgdk)
+
+# Whether this is the top-level project (standalone build) or sampgdk is
+# pulled in from another project via add_subdirectory.
+if(CMAKE_SOURCE_DIR STREQUAL CMAKE_CURRENT_SOURCE_DIR)
+  set(SAMPGDK_TOP_LEVEL ON)
+else()
+  set(SAMPGDK_TOP_LEVEL OFF)
+endif()
 
 # cmake/modules is the samp-cmake-modules submodule (shared build modules);
 # cmake holds sampgdk-specific files (packaging config, toolchain).
@@ -10,7 +18,6 @@ list(APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake)
 
 option(SAMPGDK_STATIC "Build static library instead" OFF)
 option(SAMPGDK_BUILD_PLUGINS "Build example plugins" OFF)
-option(SAMPGDK_BUILD_AMALGAMATION "Build amalgamation" OFF)
 option(SAMPGDK_BUILD_DOCS "Build Doxygen documentation" ON)
 option(SAMPGDK_TINY "Build tiny version (callbacks only, no open.mp natives)" OFF)
 option(SAMPGDK_ARCH "Target architecture (32 or 64)" 32)
@@ -32,6 +39,12 @@ if(NOT (MSVC_IDE AND MSVC_VERSION LESS 1600))
   set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 endif()
 
+# SA-MP plugin SDK: an explicit SAMPSDK_DIR / SAMP_SDK_ROOT wins; otherwise
+# fall back to the submodule checked out under deps/samp-plugin-sdk. This
+# keeps both standalone builds and add_subdirectory consumers working.
+if(NOT SAMPSDK_DIR AND NOT SAMP_SDK_ROOT AND NOT DEFINED ENV{SAMP_SDK_ROOT})
+  set(SAMPSDK_DIR ${PROJECT_SOURCE_DIR}/deps/samp-plugin-sdk)
+endif()
 find_package(SAMPSDK REQUIRED)
 find_package(PythonInterp 2.7 REQUIRED)
 
@@ -42,7 +55,6 @@ include_directories(
   ${PROJECT_BINARY_DIR}/include
   ${PROJECT_SOURCE_DIR}/lib/sampgdk
 )
-
 macro(sampgdk_add_subproject name)
   add_subdirectory(${name})
   file(RELATIVE_PATH folder ${PROJECT_SOURCE_DIR} ${CMAKE_CURRENT_SOURCE_DIR})
@@ -164,16 +176,30 @@ macro(sampgdk_add_exports_gen format output_file)
     DEPENDS ${ARGN} ${PROJECT_SOURCE_DIR}/scripts/generate_exports.py)
 endmacro()
 
-add_subdirectory(cmake)
-if(SAMPGDK_BUILD_DOCS)
+# cmake/ installs the CMake package-config files and exports the package,
+# which only makes sense when building sampgdk standalone.
+if(SAMPGDK_TOP_LEVEL)
+  add_subdirectory(cmake)
+endif()
+if(SAMPGDK_BUILD_DOCS AND SAMPGDK_TOP_LEVEL)
   add_subdirectory(doc)
 endif()
 add_subdirectory(include)
 add_subdirectory(lib)
-if(SAMPGDK_BUILD_PLUGINS)
+if(SAMPGDK_BUILD_PLUGINS AND SAMPGDK_TOP_LEVEL)
   add_subdirectory(plugins)
 endif()
 add_subdirectory(scripts)
+
+# Zydis x86/x64 decoder, pulled in as a git submodule (deps/zydis). Its CMake
+# provides the `Zydis` target (static by default) with the right include dirs
+# and C11 settings; sampgdk only links against it.
+set(ZYDIS_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
+set(ZYDIS_BUILD_TOOLS OFF CACHE BOOL "" FORCE)
+set(ZYDIS_BUILD_MAN OFF CACHE BOOL "" FORCE)
+set(ZYDIS_BUILD_DOXYGEN OFF CACHE BOOL "" FORCE)
+set(ZYDIS_BUILD_TESTS OFF CACHE BOOL "" FORCE)
+add_subdirectory(${PROJECT_SOURCE_DIR}/deps/zydis ${PROJECT_BINARY_DIR}/deps/zydis)
 
 sampgdk_get_sources(SAMPGDK_SOURCES)
 
@@ -252,6 +278,16 @@ if(SAMPGDK_STATIC)
   target_compile_definitions(sampgdk PUBLIC SAMPGDK_STATIC)
 endif()
 
+# Propagate include directories to consumers (via add_subdirectory / link).
+# Public headers live partly in the source tree (include/) and partly in the
+# build tree (generated sampgdk/*.h), plus the SA-MP plugin SDK headers.
+target_include_directories(sampgdk PUBLIC
+  ${PROJECT_SOURCE_DIR}/include
+  ${PROJECT_BINARY_DIR}/include
+  ${SAMPSDK_INCLUDE_DIR}
+  ${SAMPSDK_INCLUDE_DIR}/amx
+)
+
 if(WIN32)
   target_compile_definitions(sampgdk PRIVATE WIN32_LEAN_AND_MEAN)
   if(SAMPGDK_ARCH EQUAL 64)
@@ -260,6 +296,10 @@ if(WIN32)
 elseif(UNIX)
   target_compile_definitions(sampgdk PRIVATE _GNU_SOURCE)
 endif()
+
+# Zydis is built as a static library by its own subdirectory and linked into
+# sampgdk; its `Zydis` target carries the include dirs and C11 setting.
+target_link_libraries(sampgdk PRIVATE Zydis)
 
 if(MSVC)
   target_compile_definitions(sampgdk PRIVATE _CRT_SECURE_NO_WARNINGS)
@@ -294,44 +334,6 @@ else()
   target_link_libraries(sampgdk PRIVATE ${SAMPGDK_LIBRARIES})
 endif()
 
-if(SAMPGDK_BUILD_AMALGAMATION)
-  foreach(file IN LISTS SAMPGDK_SOURCES)
-    if (file MATCHES ".*\\.c" OR file MATCHES ".*\\.h")
-      list(APPEND SAMPGDK_AMALGAMATE_FLAGS --source "${file}")
-    endif()
-  endforeach()
-  foreach(file IN LISTS SAMPGDK_HEADERS)
-    if (file MATCHES ".*\\.h")
-      list(APPEND SAMPGDK_AMALGAMATE_FLAGS --header "${file}")
-    endif()
-  endforeach()
-
-  add_custom_target(sampgdk_amalgamate ALL
-    COMMAND ${PYTHON_EXECUTABLE}
-      ${PROJECT_SOURCE_DIR}/scripts/amalgamate.py
-      --include-dir ${PROJECT_SOURCE_DIR}/include
-      --include-dir ${PROJECT_BINARY_DIR}/include
-      --include-dir ${PROJECT_SOURCE_DIR}/lib/sampgdk
-      --output-source ${PROJECT_BINARY_DIR}/lib/sampgdk/sampgdk.c
-      --output-header ${PROJECT_BINARY_DIR}/lib/sampgdk/sampgdk.h
-      --source-preamble ${PROJECT_SOURCE_DIR}/lib/sampgdk/sampgdk.c
-      --header-preamble ${PROJECT_SOURCE_DIR}/lib/sampgdk/sampgdk.h
-      ${SAMPGDK_AMALGAMATE_FLAGS}
-    WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
-    COMMENT "Generating amalgamation")
-  add_dependencies(sampgdk_amalgamate sampgdk)
-
-  add_custom_target(sampgdk_amalgamate_package ALL
-    COMMAND ${PYTHON_EXECUTABLE}
-      ${PROJECT_SOURCE_DIR}/scripts/zip.py
-      ${PROJECT_BINARY_DIR}/sampgdk-${SAMPGDK_VERSION}-amalgamation.zip
-      ${PROJECT_BINARY_DIR}/lib/sampgdk/sampgdk.c
-      ${PROJECT_BINARY_DIR}/lib/sampgdk/sampgdk.h
-      ${PROJECT_SOURCE_DIR}/doc/how-to-use-amalgamation.txt
-    COMMENT "Packaging amalgamation files")
-  add_dependencies(sampgdk_amalgamate_package sampgdk_amalgamate)
-endif()
-
 add_dependencies(sampgdk sampgdk_init)
 
 foreach(header IN LISTS SAMPGDK_HEADERS)
@@ -352,22 +354,26 @@ install(TARGETS sampgdk RUNTIME DESTINATION bin COMPONENT bin
                         ARCHIVE DESTINATION lib COMPONENT dev
                         LIBRARY DESTINATION lib COMPONENT bin)
 
-if(SAMPGDK_ARCH EQUAL 32)
-  set(ARCH_TAG "32")
-else()
-  set(ARCH_TAG "64")
-endif()
+# Packaging (CPack) only makes sense for a standalone build; skip it when
+# sampgdk is consumed via add_subdirectory from another project.
+if(SAMPGDK_TOP_LEVEL)
+  if(SAMPGDK_ARCH EQUAL 32)
+    set(ARCH_TAG "32")
+  else()
+    set(ARCH_TAG "64")
+  endif()
 
-if(WIN32)
-  set(CPACK_PACKAGE_FILE_NAME sampgdk-${SAMPGDK_VERSION}-win${ARCH_TAG})
-  set(CPACK_GENERATOR ZIP)
-elseif(UNIX)
-  set(CPACK_PACKAGE_FILE_NAME sampgdk-${SAMPGDK_VERSION}-linux${ARCH_TAG})
-  set(CPACK_GENERATOR TGZ)
-endif()
+  if(WIN32)
+    set(CPACK_PACKAGE_FILE_NAME sampgdk-${SAMPGDK_VERSION}-win${ARCH_TAG})
+    set(CPACK_GENERATOR ZIP)
+  elseif(UNIX)
+    set(CPACK_PACKAGE_FILE_NAME sampgdk-${SAMPGDK_VERSION}-linux${ARCH_TAG})
+    set(CPACK_GENERATOR TGZ)
+  endif()
 
-if(SAMPGDK_STATIC)
-  set(CPACK_PACKAGE_FILE_NAME ${CPACK_PACKAGE_FILE_NAME}-static)
-endif()
+  if(SAMPGDK_STATIC)
+    set(CPACK_PACKAGE_FILE_NAME ${CPACK_PACKAGE_FILE_NAME}-static)
+  endif()
 
-include(CPack)
+  include(CPack)
+endif()

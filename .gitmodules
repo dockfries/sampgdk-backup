@@ -7,3 +7,6 @@
 [submodule "deps/omp-stdlib"]
 	path = deps/omp-stdlib
 	url = https://github.com/openmultiplayer/omp-stdlib.git
+[submodule "deps/zydis"]
+	path = deps/zydis
+	url = https://github.com/zyantific/zydis
