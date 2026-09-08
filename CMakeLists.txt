@@ -279,6 +279,12 @@ set_target_properties(sampgdk PROPERTIES
   DEBUG_POSTFIX d
 )
 
+# When sampgdk is built as a static library and linked into another project's
+# shared module (e.g. samp-node's plugin .so on Linux), the objects must be
+# position-independent or the final .so link fails. Harmless for shared
+# library builds, which are PIC anyway.
+set_target_properties(sampgdk PROPERTIES POSITION_INDEPENDENT_CODE ON)
+
 if(SAMPGDK_STATIC)
   target_compile_definitions(sampgdk PUBLIC SAMPGDK_STATIC)
 endif()
