@@ -19,6 +19,7 @@ list(APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake)
 option(SAMPGDK_STATIC "Build static library instead" OFF)
 option(SAMPGDK_BUILD_PLUGINS "Build example plugins" OFF)
 option(SAMPGDK_BUILD_DOCS "Build Doxygen documentation" ON)
+option(SAMPGDK_BUILD_AMALGAMATION "Build single-file amalgamation" OFF)
 option(SAMPGDK_TINY "Build tiny version (callbacks only, no open.mp natives)" OFF)
 option(SAMPGDK_ARCH "Target architecture (32 or 64)" 32)
 
@@ -354,6 +355,40 @@ else()
 endif()
 
 add_dependencies(sampgdk sampgdk_init)
+
+# Single-file amalgamation (optional). The generated sampgdk.c/sampgdk.h fold
+# every sampgdk source into one translation unit, but deliberately exclude
+# Zydis: hook.c's #include <Zydis/Zydis.h> is kept as a real include, so a
+# consumer of the amalgamation must provide Zydis itself (e.g. add the zydis
+# git submodule and link its static library). This keeps the amalgamation
+# self-contained apart from that one external hooking dependency.
+if(SAMPGDK_TOP_LEVEL AND SAMPGDK_BUILD_AMALGAMATION)
+  foreach(file IN LISTS SAMPGDK_SOURCES)
+    if (file MATCHES ".*\\.c" OR file MATCHES ".*\\.h")
+      list(APPEND SAMPGDK_AMALGAMATE_FLAGS --source "${file}")
+    endif()
+  endforeach()
+  foreach(file IN LISTS SAMPGDK_HEADERS)
+    if (file MATCHES ".*\\.h")
+      list(APPEND SAMPGDK_AMALGAMATE_FLAGS --header "${file}")
+    endif()
+  endforeach()
+
+  add_custom_target(sampgdk_amalgamate ALL
+    COMMAND ${PYTHON_EXECUTABLE}
+      ${PROJECT_SOURCE_DIR}/scripts/amalgamate.py
+      --include-dir ${PROJECT_SOURCE_DIR}/include
+      --include-dir ${PROJECT_BINARY_DIR}/include
+      --include-dir ${PROJECT_SOURCE_DIR}/lib/sampgdk
+      --output-source ${PROJECT_BINARY_DIR}/lib/sampgdk/sampgdk.c
+      --output-header ${PROJECT_BINARY_DIR}/lib/sampgdk/sampgdk.h
+      --source-preamble ${PROJECT_SOURCE_DIR}/lib/sampgdk/sampgdk.c
+      --header-preamble ${PROJECT_SOURCE_DIR}/lib/sampgdk/sampgdk.h
+      ${SAMPGDK_AMALGAMATE_FLAGS}
+    WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
+    COMMENT "Generating amalgamation")
+  add_dependencies(sampgdk_amalgamate sampgdk)
+endif()
 
 if(SAMPGDK_TOP_LEVEL)
   foreach(header IN LISTS SAMPGDK_HEADERS)

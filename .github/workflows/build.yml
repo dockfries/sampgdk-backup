@@ -90,3 +90,71 @@ jobs:
         run: |
           # the shared library built against the POSIX mprotect path
           test -f build/libsampgdk.so
+
+  # The optional single-file amalgamation is generated and published as an
+  # artifact (full and tiny variants). It deliberately does not bundle Zydis
+  # (hook.c keeps its real #include <Zydis/Zydis.h>), so the artifact is a
+  # compact source pair that consumers combine with their own Zydis.
+  amalgamation:
+    name: amalgamation-${{ matrix.tiny && 'tiny' || 'full' }}
+    runs-on: windows-latest
+    strategy:
+      matrix:
+        tiny: [true, false]
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          submodules: recursive
+
+      # Code generation (scripts/generate_code.py) requires ply.
+      - name: Install Python dependencies
+        run: python -m pip install ply
+
+      - name: Configure CMake
+        shell: powershell
+        run: |
+          cmake -S . -B build -A x64 `
+            -DSAMPGDK_BUILD_DOCS=OFF `
+            -DSAMPGDK_BUILD_PLUGINS=OFF `
+            -DSAMPGDK_BUILD_AMALGAMATION=ON `
+            -DSAMPGDK_TINY=${{ matrix.tiny }}
+
+      # Build first so the IDL codegen generates the a_*/omp_* headers the
+      # amalgamation folds in.
+      - name: Build (codegen)
+        shell: bash
+        run: cmake --build build --config RelWithDebInfo --parallel
+
+      - name: Build amalgamation
+        shell: bash
+        run: cmake --build build --target sampgdk_amalgamate --config RelWithDebInfo
+
+      - name: Verify amalgamation excludes Zydis implementation
+        shell: bash
+        run: |
+          test -f build/lib/sampgdk/sampgdk.c
+          test -f build/lib/sampgdk/sampgdk.h
+          grep -q "#include <Zydis/Zydis.h>" build/lib/sampgdk/sampgdk.c
+          if grep -q "zydis_decoder_tree_root" build/lib/sampgdk/sampgdk.c; then
+            echo "amalgamation unexpectedly contains Zydis internals"
+            exit 1
+          fi
+
+      # The tiny amalgamation must not contain IDL native implementations
+      # (e.g. sampgdk_CreatePlayer), only callback machinery.
+      - name: Verify tiny amalgamation has no IDL native impls
+        if: matrix.tiny
+        shell: bash
+        run: |
+          if grep -q "sampgdk_CreatePlayer" build/lib/sampgdk/sampgdk.c; then
+            echo "tiny amalgamation unexpectedly contains a native impl"
+            exit 1
+          fi
+
+      - name: Upload amalgamation
+        uses: actions/upload-artifact@v7
+        with:
+          name: sampgdk-amalgamation-${{ matrix.tiny && 'tiny' || 'full' }}
+          path: |
+            build/lib/sampgdk/sampgdk.c
+            build/lib/sampgdk/sampgdk.h

@@ -103,6 +103,7 @@ following options:
 * `SAMPGDK_STATIC`        - Build as static library (default is OFF)
 * `SAMPGDK_BUILD_PLUGINS` - Build example plugins (default is OFF)
 * `SAMPGDK_BUILD_DOCS`    - Build Doxygen documentation (default is ON)
+* `SAMPGDK_BUILD_AMALGAMATION` - Build single-file amalgamation (default OFF)
 * `SAMPGDK_TINY`          - Tiny build: callbacks only, no IDL natives
                             (default is OFF)
 * `SAMPGDK_ARCH`          - Target architecture: 32 or 64 (default 32)
@@ -133,6 +134,35 @@ The `sampgdk` target propagates its include directories and its Zydis
 dependency through `target_link_libraries`, so no extra include paths are
 needed. The SA-MP plugin SDK is found under sampgdk's own `deps/` submodule
 unless you set `SAMPSDK_DIR` or `SAMP_SDK_ROOT` before adding the directory.
+
+### Using the single-file amalgamation
+
+As an alternative to the submodule, sampgdk can be built into a single-file
+amalgamation (`sampgdk.c` + `sampgdk.h`) that you drop into your own build:
+
+```sh
+cmake -DSAMPGDK_BUILD_AMALGAMATION=ON -B build -S .
+cmake --build build --target sampgdk_amalgamate
+# outputs build/lib/sampgdk/sampgdk.c and sampgdk.h
+```
+
+The amalgamation folds all of sampgdk's sources into one translation unit,
+but it deliberately does **not** bundle Zydis: `hook.c` keeps its
+`#include <Zydis/Zydis.h>`, so you must provide Zydis yourself. Add the
+upstream submodule and link its static library:
+
+```sh
+git submodule add https://github.com/zyantific/zydis.git deps/zydis
+git submodule update --init --recursive   # pulls zydis' own zycore submodule
+```
+
+```cmake
+add_subdirectory(deps/zydis)
+target_link_libraries(my_target sampgdk_c Zydis)  # or add sampgdk.c to your sources
+# include dirs: your Zydis include/ (and zycore include/) plus the SA-MP SDK
+```
+
+Build `sampgdk.c` as C11 (same requirement as the submodule build).
 
 The following built-in variables may also be useful:
 
