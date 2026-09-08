@@ -341,23 +341,26 @@ endif()
 
 add_dependencies(sampgdk sampgdk_init)
 
-foreach(header IN LISTS SAMPGDK_HEADERS)
-  get_filename_component(path ${header} PATH)
-  get_filename_component(abs_path ${path} ABSOLUTE)
+if(SAMPGDK_TOP_LEVEL)
+  foreach(header IN LISTS SAMPGDK_HEADERS)
+    get_filename_component(path ${header} PATH)
+    get_filename_component(abs_path ${path} ABSOLUTE)
 
-  string(FIND ${abs_path} ${PROJECT_BINARY_DIR} pos)
-  if(pos LESS 0)
-    file(RELATIVE_PATH dir ${PROJECT_SOURCE_DIR} ${abs_path})
-  else()
-    file(RELATIVE_PATH dir ${PROJECT_BINARY_DIR} ${abs_path})
-  endif()
+    string(FIND ${abs_path} ${PROJECT_BINARY_DIR} pos)
+    if(pos LESS 0)
+      file(RELATIVE_PATH dir ${PROJECT_SOURCE_DIR} ${abs_path})
+    else()
+      file(RELATIVE_PATH dir ${PROJECT_BINARY_DIR} ${abs_path})
+    endif()
 
-  install(FILES ${header} DESTINATION ${dir} COMPONENT dev)
-endforeach()
+    install(FILES ${header} DESTINATION ${dir} COMPONENT dev)
+  endforeach()
 
-install(TARGETS sampgdk RUNTIME DESTINATION bin COMPONENT bin
-                        ARCHIVE DESTINATION lib COMPONENT dev
-                        LIBRARY DESTINATION lib COMPONENT bin)
+  install(TARGETS sampgdk RUNTIME DESTINATION bin COMPONENT bin
+                          ARCHIVE DESTINATION lib COMPONENT dev
+                          LIBRARY DESTINATION lib COMPONENT bin)
+
+endif()
 
 # Packaging (CPack) only makes sense for a standalone build; skip it when
 # sampgdk is consumed via add_subdirectory from another project.
