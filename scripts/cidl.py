@@ -614,16 +614,14 @@ class Parser(object):
     self._funclist = []
 
     self._lexer = ply.lex.lex(
-      object=self,
-      optimize=True,
-      lextab='cidl_lextab'
+      object=self
     )
 
     self._parser = ply.yacc.yacc(
       module=self,
       errorlog=Logger(),
-      debugfile='cidl_parser.out',
-      tabmodule='cidl_parsetab'
+      write_tables=False,
+      debug=False
     )
 
   def token(self):
