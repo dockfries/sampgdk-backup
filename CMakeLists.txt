@@ -199,6 +199,14 @@ set(ZYDIS_BUILD_TOOLS OFF CACHE BOOL "" FORCE)
 set(ZYDIS_BUILD_MAN OFF CACHE BOOL "" FORCE)
 set(ZYDIS_BUILD_DOXYGEN OFF CACHE BOOL "" FORCE)
 set(ZYDIS_BUILD_TESTS OFF CACHE BOOL "" FORCE)
+# sampgdk only decodes instructions (ZydisDecoderInit/DecodeFull); the encoder
+# and formatter features are unused. Disabling them keeps their code and data
+# out of the linked output, trimming the final plugin/shared-library size.
+# Consumers can still override these with -DZYDIS_FEATURE_*=ON if needed.
+set(ZYDIS_FEATURE_ENCODER OFF CACHE BOOL "" FORCE)
+set(ZYDIS_FEATURE_FORMATTER OFF CACHE BOOL "" FORCE)
+set(ZYDIS_FEATURE_AVX512 OFF CACHE BOOL "" FORCE)
+set(ZYDIS_FEATURE_KNC OFF CACHE BOOL "" FORCE)
 add_subdirectory(${PROJECT_SOURCE_DIR}/deps/zydis ${PROJECT_BINARY_DIR}/deps/zydis)
 
 # sampgdk links Zydis and Zycore as static archives into its own shared
