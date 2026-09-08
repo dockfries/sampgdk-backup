@@ -201,6 +201,11 @@ set(ZYDIS_BUILD_DOXYGEN OFF CACHE BOOL "" FORCE)
 set(ZYDIS_BUILD_TESTS OFF CACHE BOOL "" FORCE)
 add_subdirectory(${PROJECT_SOURCE_DIR}/deps/zydis ${PROJECT_BINARY_DIR}/deps/zydis)
 
+# sampgdk links Zydis and Zycore as static archives into its own shared
+# library; on ELF targets (Linux) the static objects must be compiled as
+# position-independent code for the final .so link to succeed.
+set_target_properties(Zydis Zycore PROPERTIES POSITION_INDEPENDENT_CODE ON)
+
 sampgdk_get_sources(SAMPGDK_SOURCES)
 
 foreach(file IN LISTS SAMPGDK_SOURCES)
