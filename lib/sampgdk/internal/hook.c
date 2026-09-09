@@ -67,7 +67,12 @@ struct _sampgdk_hook_jmp {
 #pragma pack(pop)
 
 struct _sampgdk_hook {
+#if SAMPGDK_WINDOWS
   uint8_t trampoline[_SAMPGDK_HOOK_TRAMPOLINE_SIZE];
+#else
+  uint8_t *trampoline;
+  size_t trampoline_size;
+#endif
 };
 
 #if SAMPGDK_WINDOWS
@@ -84,13 +89,35 @@ static void *_sampgdk_hook_unprotect(void *address, size_t size) {
 
 #else /* SAMPGDK_WINDOWS */
 
+/* The "unprotect" function name is misleading, but was kept here to make
+ * the code more consistent with Windows memory handling.
+ * This function changes the memory regions permissions to read/write
+ * (without execute) */
+static int _sampgdk_hook_set_prot(void *address, size_t size, int prot) {
+  long pagesize = sysconf(_SC_PAGESIZE);
+  uintptr_t start = (uintptr_t)address;
+  uintptr_t page_start = start & ~((uintptr_t)pagesize - 1);
+  size_t offset = start - page_start;
+  size_t span = size + offset;
+
+  return mprotect((void *)page_start, span, prot);
+}
+
 static void *_sampgdk_hook_unprotect(void *address, size_t size) {
-  long pagesize;
+  if (_sampgdk_hook_set_prot(address, size, PROT_READ | PROT_WRITE) != 0) {
+    return NULL;
+  }
 
-  pagesize = sysconf(_SC_PAGESIZE);
-  address = (void *)((uintptr_t)address & ~((uintptr_t)(pagesize - 1)));
+  return address;
+}
 
-  if (mprotect(address, size, PROT_READ | PROT_WRITE | PROT_EXEC) != 0) {
+/* This function changes the memory region's permissions to read/execute
+ * (without write)
+ * SELinux does not like memory region's that are both writable and
+ * executable at the same time, so we just remove the write permission for
+ * that memory region */
+static void *_sampgdk_hook_protect(void *address, size_t size) {
+  if (_sampgdk_hook_set_prot(address, size, PROT_READ | PROT_EXEC) != 0) {
     return NULL;
   }
 
@@ -191,14 +218,42 @@ static void _sampgdk_hook_write_jmp(void *src, void *dst, int32_t offset) {
 sampgdk_hook_t sampgdk_hook_new(void *src, void *dst) {
   struct _sampgdk_hook *hook;
   size_t orig_size = 0;
-  size_t insn_len;
+  size_t insn_len = 0;
 
   if ((hook = (sampgdk_hook_t)malloc(sizeof(*hook))) == NULL) {
     return NULL;
   }
 
+#if SAMPGDK_WINDOWS
+
+  /* In Windows, we can simply allocate the trampoline in heap memory,
+   * no special memory handling required */
   _sampgdk_hook_unprotect(src, _SAMPGDK_HOOK_JMP_SIZE);
   _sampgdk_hook_unprotect(hook->trampoline, _SAMPGDK_HOOK_TRAMPOLINE_SIZE);
+
+#else
+
+  /* To prevent SELinux from triggering an "execheap" AVC denial, the
+   * trampoline must be allocated in a separate memory region with mmap.
+   * We can then control the memory region's permissions properly. */
+  long pagesize = sysconf(_SC_PAGESIZE);
+
+  hook->trampoline_size = (size_t)pagesize;
+  hook->trampoline = mmap(
+    NULL,
+    hook->trampoline_size,
+    PROT_READ | PROT_WRITE,
+    MAP_PRIVATE | MAP_ANONYMOUS,
+    -1,
+    0
+  );
+
+  if (hook->trampoline == MAP_FAILED) {
+    free(hook);
+    return NULL;
+  }
+
+#endif
 
   /* We can't just jump to src + 5 as we could end up in the middle of
    * some instruction. So we need to determine the instruction length.
@@ -230,6 +285,9 @@ sampgdk_hook_t sampgdk_hook_new(void *src, void *dst) {
   }
 
   if (insn_len == 0) {
+#if !SAMPGDK_WINDOWS
+    munmap(hook->trampoline, hook->trampoline_size);
+#endif
     free(hook);
     return NULL;
   }
@@ -242,20 +300,50 @@ sampgdk_hook_t sampgdk_hook_new(void *src, void *dst) {
    * To jump to src + orig_size, pass dst = src (not src + orig_size). */
   _sampgdk_hook_write_jmp(hook->trampoline, src, (int32_t)orig_size);
 #endif
+
+#if !SAMPGDK_WINDOWS
+  /* On Linux we are using a separate memory region allocated by mmap for
+   * the trampoline. To prevent SELinux from triggering an "execheap" AVC
+   * denial, we need to change the permissions for the trampoline to
+   * read/execute only. */
+  if (_sampgdk_hook_protect(hook->trampoline, hook->trampoline_size) == NULL) {
+    munmap(hook->trampoline, hook->trampoline_size);
+    free(hook);
+    return NULL;
+  }
+#endif
+
+  if (_sampgdk_hook_unprotect(src, _SAMPGDK_HOOK_JMP_SIZE) == NULL) {
+#if !SAMPGDK_WINDOWS
+    munmap(hook->trampoline, hook->trampoline_size);
+#endif
+    free(hook);
+    return NULL;
+  }
+
   _sampgdk_hook_write_jmp(src, dst, 0);
 
-  /* No explicit instruction-cache flush is needed on x86/x64: the
-   * hardware's cache-coherency protocol (plus the natural serialization of
-   * a call to the patched function, which is always on another thread or
-   * after a synchronization point in practice) makes the new bytes visible
-   * to every core. The kernel flush APIs would be no-ops here anyway;
-   * they only matter on architectures with explicit I-cache maintenance
-   * (e.g. ARM), which sampgdk does not target. */
+#if !SAMPGDK_WINDOWS
+  /* Set src back to read/execute. If this fails the hook is unusable: src
+   * has already been patched, so there is no safe way to roll it back. */
+  if (_sampgdk_hook_protect(src, _SAMPGDK_HOOK_JMP_SIZE) == NULL) {
+    sampgdk_log_error("mprotect src->RX failed, hook aborted (src may be left writable)");
+    munmap(hook->trampoline, hook->trampoline_size);
+    free(hook);
+    return NULL;
+  }
+#endif
 
   return hook;
 }
 
 void sampgdk_hook_free(sampgdk_hook_t hook) {
+#if !SAMPGDK_WINDOWS
+  /* On Linux we need to release the trampoline memory region that we
+   * previously allocated using mmap */
+  munmap(hook->trampoline, hook->trampoline_size);
+#endif
+
   free(hook);
 }
 
